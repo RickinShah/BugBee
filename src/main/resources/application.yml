@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: BugBee
+  r2dbc:
+    url: r2dbc:postgresql://postgres@localhost:5432/bugbee
+    username: admin
+    password: admin
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        r2dbc: DEBUG
