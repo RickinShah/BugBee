@@ -19,8 +19,9 @@ CREATE TABLE IF NOT EXISTS queries (
     user_id UUID NOT NULL,
     title VARCHAR(50) NOT NULL,
     query VARCHAR(500) NOT NULL,
+    media VARCHAR(50) DEFAULT NULL,
     media_type VARCHAR(10) DEFAULT NULL,
-    media VARCHAR(100) DEFAULT NULL,
+    posted_date DATE NOT NULL DEFAULT CURRENT_DATE,
     PRIMARY KEY(id),
     CONSTRAINT fk_queries_users
         FOREIGN KEY(user_id)
@@ -32,7 +33,9 @@ CREATE TABLE IF NOT EXISTS answers (
     id SMALLINT GENERATED ALWAYS AS IDENTITY,
     user_id UUID NOT NULL,
     query_id UUID NOT NULL,
+    vote SMALLINT NOT NULL DEFAULT 0,
     answer VARCHAR(1500) NOT NULL,
+    posted_date DATE NOT NULL DEFAULT CURRENT_DATE,
     PRIMARY KEY(id),
     CONSTRAINT fk_answers_queries
         FOREIGN KEY(query_id)
