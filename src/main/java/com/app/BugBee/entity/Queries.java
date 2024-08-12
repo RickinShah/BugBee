@@ -1,11 +1,10 @@
 package com.app.BugBee.entity;
 
-import com.app.BugBee.enums.ACCOUNT;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
@@ -13,13 +12,16 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "users")
-@Builder
-public class User {
+@Table("queries")
+public class Queries {
     @Id
     private UUID id;
-    private String email;
-    private String name;
-    private String password;
-    private String account = ACCOUNT.USER.name();
+    @Column("user_id")
+    private UUID userId;
+    private String title;
+    private String query;
+    private String media;
+    @Column("media_type")
+    private String mediaType;
+    private User user;
 }
