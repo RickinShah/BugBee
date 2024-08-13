@@ -22,4 +22,10 @@ public class User {
     private String name;
     private String password;
     private String account = ACCOUNT.USER.name();
+
+    public User(String email, String password, String account) {
+        this.email = email;
+        this.password = password;
+        this.account = account;
+    }
 }

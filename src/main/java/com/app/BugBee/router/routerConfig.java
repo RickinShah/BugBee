@@ -22,6 +22,9 @@ public class routerConfig {
                 .PUT("/users/password/update", handler::updatePassword)
                 .DELETE("/users/delete", handler::deleteUser)
                 .GET("/save-all", handler::saveUsers)
+                .GET("/auth/login", handler::getToken)
+                .GET("/auth/token", handler::validateToken)
+//                .GET("/auth/validate",)
                 .build();
     }
 }
