@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+import java.util.Arrays;
+
 @Configuration
 @EnableReactiveMethodSecurity
 @EnableWebFluxSecurity
@@ -26,7 +28,7 @@ public class SecurityConfig {
         return (username) -> users.findByEmail(username)
                 .map(u -> User.withUsername(u.getEmail())
                         .password(u.getPassword())
-                        .authorities(u.getAccount())
+                        .authorities(u.getRoles())
                         .accountExpired(false)
                         .credentialsExpired(false)
                         .disabled(false)
@@ -45,8 +47,9 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, JwtTokenProvider tokenProvider) {
         return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth ->
-                        auth.pathMatchers("/auth/**", "/save-all").permitAll()
+                        auth.pathMatchers("/auth/**").permitAll()
                                 .pathMatchers("/users/**").authenticated()
+                                .pathMatchers("/admin/**").hasRole("ADMIN")
 //                                .pathMatchers("/users")
                 )
                 .addFilterAt(new JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)

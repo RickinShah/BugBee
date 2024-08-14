@@ -16,15 +16,15 @@ public class routerConfig {
     @Bean
     public RouterFunction<ServerResponse> routerFunction() {
         return RouterFunctions.route()
-                .GET("/users", handler::getUsers)
                 .POST("/auth/signup", handler::saveUser)
+                .GET("/auth/login", handler::getToken)
+                .GET("/admin/users", handler::getUsers)
                 .GET("/users/get", handler::getUser)
                 .PUT("/users/password/update", handler::updatePassword)
                 .DELETE("/users/delete", handler::deleteUser)
-                .GET("/save-all", handler::saveUsers)
-                .GET("/auth/login", handler::getToken)
-                .GET("/auth/token", handler::validateToken)
-//                .GET("/auth/validate",)
+                .GET("/admin/save-all", handler::saveUsers)
+                .POST("/auth/add-user", handler::addAdmin)
+//                .GET("/auth/token", handler::validateToken)
                 .build();
     }
 }

@@ -1,13 +1,15 @@
 package com.app.BugBee.entity;
 
-import com.app.BugBee.enums.ACCOUNT;
+import com.app.BugBee.enums.ROLES;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.util.Collection;
 import java.util.UUID;
 
 @Data
@@ -21,11 +23,11 @@ public class User {
     private String email;
     private String name;
     private String password;
-    private String account = ACCOUNT.USER.name();
+    private String roles;
 
-    public User(String email, String password, String account) {
+    public User(String email, String password, String roles) {
         this.email = email;
         this.password = password;
-        this.account = account;
+        this.roles = roles;
     }
 }

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class JwtTokenProvider {
-    private static final String AUTHORITIES_KEY = "account";
+    private static final String AUTHORITIES_KEY = "roles";
 
     final private SecretKey key;
     final private JwtParser parser;
@@ -30,9 +30,15 @@ public class JwtTokenProvider {
         this.parser = Jwts.parser().verifyWith(this.key).build();
     }
 
-    public String createToken(String username) {
-        return Jwts.builder()
+    public String createToken(Authentication authentication) {
+        String username = authentication.getName();
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        Claims claims = Jwts.claims()
                 .subject(username)
+                .add(AUTHORITIES_KEY, authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(",")))
+                .build();
+        return Jwts.builder()
+                .claims(claims)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
                 .signWith(key)
@@ -60,13 +66,13 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = parser.parseSignedClaims(token).getPayload();
 
-//        Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(AUTHORITIES_KEY).toString());
+        Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(AUTHORITIES_KEY).toString());
 
-        User principal = new User(claims.getSubject(), "", null);
+        User principal = new User(claims.getSubject(), "", authorities.toString());
+        System.out.println(authorities);
 
-        return new UsernamePasswordAuthenticationToken(principal, token, null);
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
 
-//                AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(AUTHORITIES_KEY, authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","))));
     }
 
 
