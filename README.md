@@ -42,11 +42,11 @@ spring:
 
 #### For Windows:
 ```shell
-mvnw.cmd clean install
+mvnw.cmd package
 ```
 #### For Linux/MacOS:
 ```shell
-./mvnw clean install
+./mvnw package
 ```
 
 ### 4. Run the project
