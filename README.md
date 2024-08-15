@@ -39,11 +39,11 @@ spring:
 ```
 
 ### 3. Run the project
-##### For Windows:
+#### For Windows:
 ```shell
 mvnw.cmd spring-boot:run
 ```
-##### For Linux/MacOS:
+#### For Linux/MacOS:
 ```shell
 ./mvnw spring-boot:run
 ```
