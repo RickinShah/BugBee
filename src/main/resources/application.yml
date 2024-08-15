@@ -2,7 +2,7 @@ spring:
   application:
     name: BugBee
   r2dbc:
-    url: r2dbc:postgresql://postgres@localhost:5432/bugbee
+    url: r2dbc:postgresql://localhost:5432/bugbee
     username: admin
     password: admin
 #logging:
