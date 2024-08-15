@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table("answers")
-public class Answers {
+public class Answer {
     @Id
     private int id;
 //    @Column("user_id")

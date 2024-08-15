@@ -6,22 +6,23 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import reactor.core.publisher.Flux;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table("queries")
-public class Queries {
+public class Query {
     @Id
     private UUID id;
-    @Column("user_id")
-    private UUID userId;
     private String title;
     private String query;
     private String media;
     @Column("media_type")
     private String mediaType;
     private User user;
+    private Flux<Answer> answers;
 }

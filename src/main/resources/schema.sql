@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     PRIMARY KEY(id)
 );
 
+INSERT INTO users(email, name, password, roles) VALUES ('rickin.shah17403@gmail.com', 'Rickin Shah', '$2a$10$w7V3R3hvUwQg2aHwBAvwX.Feok1qsfCS1sNCoMfJUorxwVJHy0pRu', 'ROLE_ADMIN');
+
 CREATE TABLE IF NOT EXISTS queries (
     id UUID DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,

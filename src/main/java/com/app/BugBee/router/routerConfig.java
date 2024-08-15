@@ -17,14 +17,12 @@ public class routerConfig {
     public RouterFunction<ServerResponse> routerFunction() {
         return RouterFunctions.route()
                 .POST("/auth/signup", handler::saveUser)
-                .GET("/auth/login", handler::getToken)
-                .GET("/admin/users", handler::getUsers)
+                .POST("/auth/login", handler::getToken)
                 .GET("/users/get", handler::getUser)
                 .PUT("/users/password/update", handler::updatePassword)
                 .DELETE("/users/delete", handler::deleteUser)
-                .GET("/admin/save-all", handler::saveUsers)
-                .POST("/auth/add-user", handler::addAdmin)
-//                .GET("/auth/token", handler::validateToken)
+                .POST("/admin/save-all", handler::saveUsers)
+                .GET("/admin/users", handler::getUsers)
                 .build();
     }
 }
