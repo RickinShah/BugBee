@@ -16,7 +16,7 @@ This Project is currently in progress.
 
 ### Prerequisites
 
-Here's what you need to be able to run Papermark:
+Here's what you need to be able to run BugBee:
 
 - JDK 21
 - PostgreSQL
