@@ -1,7 +1,6 @@
 package com.app.BugBee.router;
 
-import com.app.BugBee.handler.MailHandler;
-import com.app.BugBee.handler.UserHandler;
+import com.app.BugBee.handler.AdminHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,16 +9,15 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
-public class UserRouter {
+public class AdminRouter {
     @Autowired
-    private UserHandler handler;
+    private AdminHandler handler;
 
     @Bean
-    public RouterFunction<ServerResponse> userRouting() {
+    public RouterFunction<ServerResponse> adminRouting() {
         return RouterFunctions.route()
-                .GET("/users/get", handler::getUser)
-                .PUT("/users/password/update", handler::updatePassword)
-                .DELETE("/users/delete", handler::deleteUser)
+                .POST("/admin/save-all", handler::saveUsers)
+                .GET("/admin/users", handler::getUsers)
                 .build();
     }
 }

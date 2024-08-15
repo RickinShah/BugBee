@@ -2,9 +2,7 @@ package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.AuthRequest;
 import com.app.BugBee.dto.BooleanAndMessage;
-import com.app.BugBee.dto.UserDto;
 import com.app.BugBee.entity.User;
-import com.app.BugBee.enums.ROLES;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import com.app.BugBee.mapper.DtoEntityMapper;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -35,13 +32,6 @@ public class UserHandler {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    public Mono<ServerResponse> getUsers(ServerRequest request) {
-        return ServerResponse.ok().body(BodyInserters.fromPublisher(
-                repository.findAll()
-                        .map(DtoEntityMapper::userToDto), UserDto.class
-        ));
-    }
 
     public Mono<ServerResponse> getUser(ServerRequest request) {
         return request.bodyToMono(String.class)
@@ -83,13 +73,6 @@ public class UserHandler {
         return repository.deleteById(tokenProvider.getUsername(token))
                 .flatMap(e -> ServerResponse.noContent().build());
 
-    }
-
-    public Mono<ServerResponse> saveUsers(ServerRequest request) {
-        return ServerResponse.ok().body(Flux.range(1, 100)
-                .map(i -> new User(null, "user" + i + "@gmail.com", "user " + i, passwordEncoder.encode("user " + i), ROLES.ROLE_USER.name()))
-                .flatMap(repository::save)
-                .map(DtoEntityMapper::userToDto), UserDto.class);
     }
 
     public Mono<ServerResponse> getToken(ServerRequest request) {
