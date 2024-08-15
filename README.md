@@ -41,9 +41,11 @@ spring:
 ### 3. Run the project
 #### For Windows:
 ```shell
-mvnw.cmd spring-boot:run
+mvnw.cmd clean install
+java -jar target/BugBee-0.0.1-SNAPSHOT.jar
 ```
 #### For Linux/MacOS:
 ```shell
-./mvnw spring-boot:run
+./mvnw clean install
+java -jar target/BugBee-0.0.1-SNAPSHOT.jar
 ```
