@@ -38,14 +38,18 @@ spring:
     password: your_password
 ```
 
-### 3. Run the project
+### 3. Compile the project
+
 #### For Windows:
 ```shell
 mvnw.cmd clean install
-java -jar target/BugBee-0.0.1-SNAPSHOT.jar
 ```
 #### For Linux/MacOS:
 ```shell
 ./mvnw clean install
+```
+
+### 4. Run the project
+```shell
 java -jar target/BugBee-0.0.1-SNAPSHOT.jar
 ```
