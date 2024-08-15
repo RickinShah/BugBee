@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -45,9 +46,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String getUsername(String token) {
+    public UUID getUsername(String token) {
         Claims claims = parser.parseSignedClaims(token).getPayload();
-        return claims.getSubject();
+        return UUID.fromString(claims.getSubject());
     }
 
     public boolean validateToken(String token) {
@@ -69,7 +70,7 @@ public class JwtTokenProvider {
         Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(AUTHORITIES_KEY).toString());
 
         User principal = new User(claims.getSubject(), "", authorities.toString());
-        System.out.println(authorities);
+//        System.out.println(authorities);
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
 
