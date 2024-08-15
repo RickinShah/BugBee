@@ -33,7 +33,7 @@ cd BugBee
 ```shell
 spring:
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/your_database
+    url: r2dbc:postgresql://your_host:5432/your_database
     username: your_username
     password: your_password
 ```
