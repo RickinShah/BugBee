@@ -5,6 +5,18 @@ spring:
     url: r2dbc:postgresql://localhost:5432/bugbee
     username: admin
     password: admin
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${spring_email}
+    password: ${spring_password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 #logging:
 #  level:
 #    org:

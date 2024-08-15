@@ -1,5 +1,6 @@
 package com.app.BugBee.router;
 
+import com.app.BugBee.handler.MailHandler;
 import com.app.BugBee.handler.UserHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -9,20 +10,20 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
-public class routerConfig {
+public class AuthRouter {
+
     @Autowired
-    private UserHandler handler;
+    private UserHandler userHandler;
+
+    @Autowired
+    private MailHandler mailHandler;
 
     @Bean
-    public RouterFunction<ServerResponse> routerFunction() {
+    public RouterFunction<ServerResponse> authRouting() {
         return RouterFunctions.route()
-                .POST("/auth/signup", handler::saveUser)
-                .POST("/auth/login", handler::getToken)
-                .GET("/users/get", handler::getUser)
-                .PUT("/users/password/update", handler::updatePassword)
-                .DELETE("/users/delete", handler::deleteUser)
-                .POST("/admin/save-all", handler::saveUsers)
-                .GET("/admin/users", handler::getUsers)
+                .POST("/auth/signup", userHandler::saveUser)
+                .POST("/auth/login", userHandler::getToken)
+                .POST("/auth/send-otp", mailHandler::sendOtp)
                 .build();
     }
 }
