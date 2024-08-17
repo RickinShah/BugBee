@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS answers (
     answer VARCHAR(1500) NOT NULL,
     posted_date DATE NOT NULL DEFAULT CURRENT_DATE,
     PRIMARY KEY(id),
-    CONSTRAINT fk_answers_queries
+    CONSTRAINT fk_answers_questions
         FOREIGN KEY(question_id)
             REFERENCES questions(id)
                 ON DELETE CASCADE,
