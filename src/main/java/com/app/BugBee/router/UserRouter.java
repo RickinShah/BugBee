@@ -1,6 +1,5 @@
 package com.app.BugBee.router;
 
-import com.app.BugBee.handler.MailHandler;
 import com.app.BugBee.handler.UserHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

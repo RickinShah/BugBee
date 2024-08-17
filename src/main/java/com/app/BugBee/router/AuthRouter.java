@@ -1,6 +1,6 @@
 package com.app.BugBee.router;
 
-import com.app.BugBee.handler.MailHandler;
+import com.app.BugBee.handler.OtpHandler;
 import com.app.BugBee.handler.UserHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,14 +16,14 @@ public class AuthRouter {
     private UserHandler userHandler;
 
     @Autowired
-    private MailHandler mailHandler;
+    private OtpHandler otpHandler;
 
     @Bean
     public RouterFunction<ServerResponse> authRouting() {
         return RouterFunctions.route()
                 .POST("/auth/signup", userHandler::saveUser)
                 .POST("/auth/login", userHandler::getToken)
-                .POST("/auth/send-otp", mailHandler::sendOtp)
+                .POST("/auth/send-otp", otpHandler::sendOtp)
                 .build();
     }
 }
