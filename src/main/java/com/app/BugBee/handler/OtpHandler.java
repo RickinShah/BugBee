@@ -1,5 +1,6 @@
 package com.app.BugBee.handler;
 
+import com.app.BugBee.dto.AuthOtp;
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.entity.Otp;
 import com.app.BugBee.entity.User;
@@ -10,7 +11,6 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -51,9 +51,7 @@ public class OtpHandler {
                                     .expirationTime(System.currentTimeMillis() + 15 * 60 * 1000)
                                     .build()
                             )
-                            .doOnNext(System.out::println)
                             .flatMap(otpRepository::save)
-                            .doOnNext(System.out::println)
                             .map(otpMono -> {
                                 try {
                                     MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -63,7 +61,7 @@ public class OtpHandler {
                                     mimeMessageHelper.setSubject("One-Time Password from BugBee");
                                     mimeMessageHelper.setText(
                                             "Hello " + user.getName() + ", <strong>" + otpValue
-                                                    + "</strong> is your One-Time Password(OTP) from BugBee",
+                                                    + "</strong> is your One-Time Password(OTP) from BugBee. OTP is valid upto next 15 minutes.",
                                             true
                                     );
 //                                    if(email.getAttachment() != null) {
@@ -89,20 +87,24 @@ public class OtpHandler {
                 );
     }
 
-//    public Mono<ServerResponse> validateOtp(ServerRequest request) {
-//        return request.bodyToMono(Otp.class)
-//                .flatMap(otpMono -> otpRepository.findById(tokenProvider.getUsername(token))
-//                                .filterWhen(otpRepo -> Mono.just(
-//                                otpRepo.getExpirationTime() >= System.currentTimeMillis()))
-//                                .filterWhen(user -> Mono.just(user.getOtp() == otpMono.getOtp()))
-////                        .filter()
-////                        otpRepo.getOtp() == otpMono.getOtp() &&
-//                )
-//                .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
-//                        new BooleanAndMessage(true, "Valid Otp!")))
-//                )
-//                .switchIfEmpty(ServerResponse.badRequest().body(BodyInserters.fromValue(
-//                        new BooleanAndMessage(false, "Invalid Otp!")
-//                )));
-//    }
+    public Mono<ServerResponse> validateOtp(ServerRequest request) {
+        Mono<AuthOtp> authOtpMono = request.bodyToMono(AuthOtp.class);
+        return authOtpMono
+                .flatMap(authOtp -> repository.findByEmail(authOtp.getEmail())
+                        .flatMap(user -> otpRepository.findById(user.getId()))
+                        .filter(otp -> otp.getExpirationTime() >= System.currentTimeMillis())
+                        .switchIfEmpty(Mono.error(new RuntimeException("OTP Expired!")))
+                        .filter(otp -> otp.getOtp() == authOtp.getOtp())
+                        .flatMap(otp -> ServerResponse.ok().body(BodyInserters.fromValue(
+                                new BooleanAndMessage(true, "Valid OTP!")))
+                        )
+                        .onErrorResume(RuntimeException.class, e -> ServerResponse.badRequest().body(BodyInserters.fromValue(
+                                new BooleanAndMessage(false, e.getMessage())
+                        )))
+                        .switchIfEmpty(ServerResponse.badRequest().body(BodyInserters.fromValue(
+                                new BooleanAndMessage(false, "Incorrect OTP!")
+                        )))
+                );
+
+    }
 }
