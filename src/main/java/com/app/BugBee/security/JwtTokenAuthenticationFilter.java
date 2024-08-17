@@ -16,10 +16,11 @@ public class JwtTokenAuthenticationFilter implements WebFilter {
     public static final String HEADER_PREFIX = "Bearer ";
     private final JwtTokenProvider tokenProvider;
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String token = resolveToken(exchange.getRequest());
-        if(StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
             Authentication authentication = tokenProvider.getAuthentication(token);
             return chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
         }
@@ -28,7 +29,7 @@ public class JwtTokenAuthenticationFilter implements WebFilter {
 
     private String resolveToken(ServerHttpRequest request) {
         String bearerToken = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(HEADER_PREFIX)) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(HEADER_PREFIX)) {
             return bearerToken.substring(7);
         }
         return null;

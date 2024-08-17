@@ -16,10 +16,10 @@ import java.util.UUID;
 @Builder
 @Table(name = "otps")
 public class Otp {
+    @Column("expiration_time")
+    long expirationTime;
     @Id
     @Column("user_id")
     private UUID userId;
     private int otp;
-    @Column("expiration_time")
-    long expirationTime;
 }

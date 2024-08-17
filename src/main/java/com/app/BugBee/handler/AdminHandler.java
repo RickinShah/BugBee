@@ -24,7 +24,7 @@ public class AdminHandler {
 
     public Mono<ServerResponse> saveUsers(ServerRequest request) {
         return ServerResponse.ok().body(Flux.range(1, 100)
-                .map(i -> new User(null, "user" + i + "@gmail.com", "user " + i, passwordEncoder.encode("user " + i), ROLES.ROLE_USER.name()))
+                .map(i -> new User(null, "user" + i + "@gmail.com", "user " + i, passwordEncoder.encode("user " + i), ROLES.ROLE_USER.name(), false))
                 .flatMap(repository::save)
                 .map(DtoEntityMapper::userToDto), UserDto.class);
     }

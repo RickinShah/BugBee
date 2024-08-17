@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DROP TABLE IF EXISTS answers;
-DROP TABLE IF EXISTS queries;
+DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS otps;
 DROP TABLE IF EXISTS users;
 
@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(50) NOT NULL,
     password VARCHAR(100) NOT NULL,
-    roles VARCHAR(15) NOT NULL,
+    roles VARCHAR(15) NOT NULL DEFAULT 'ROLE_USER',
+    nsfw BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY(id)
 );
 
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS otps (
                 ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS queries (
+CREATE TABLE IF NOT EXISTS questions (
     id UUID DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
     title VARCHAR(50) NOT NULL,
@@ -46,14 +47,14 @@ CREATE TABLE IF NOT EXISTS queries (
 CREATE TABLE IF NOT EXISTS answers (
     id SMALLINT GENERATED ALWAYS AS IDENTITY,
     user_id UUID NOT NULL,
-    query_id UUID NOT NULL,
+    question_id UUID NOT NULL,
     vote SMALLINT NOT NULL DEFAULT 0,
     answer VARCHAR(1500) NOT NULL,
     posted_date DATE NOT NULL DEFAULT CURRENT_DATE,
     PRIMARY KEY(id),
     CONSTRAINT fk_answers_queries
-        FOREIGN KEY(query_id)
-            REFERENCES queries(id)
+        FOREIGN KEY(question_id)
+            REFERENCES questions(id)
                 ON DELETE CASCADE,
     CONSTRAINT fk_answers_users
         FOREIGN KEY(user_id)

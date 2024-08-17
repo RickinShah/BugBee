@@ -2,7 +2,7 @@ package com.app.BugBee.mapper;
 
 import com.app.BugBee.dto.QueryDto;
 import com.app.BugBee.dto.UserDto;
-import com.app.BugBee.entity.Query;
+import com.app.BugBee.entity.Question;
 import com.app.BugBee.entity.User;
 import org.springframework.beans.BeanUtils;
 
@@ -19,16 +19,16 @@ public class DtoEntityMapper {
         return user;
     }
 
-    public static QueryDto queryToDto(Query query) {
+    public static QueryDto queryToDto(Question question) {
         QueryDto queryDto = new QueryDto();
-        BeanUtils.copyProperties(query, queryDto);
+        BeanUtils.copyProperties(question, queryDto);
         return queryDto;
     }
 
-    public static Query dtoToQuery(QueryDto queryDto) {
-        Query query = new Query();
-        BeanUtils.copyProperties(queryDto, query);
-        return query;
+    public static Question dtoToQuery(QueryDto queryDto) {
+        Question question = new Question();
+        BeanUtils.copyProperties(queryDto, question);
+        return question;
     }
 
 }

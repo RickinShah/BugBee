@@ -16,11 +16,10 @@ import java.util.UUID;
 public class Answer {
     @Id
     private int id;
-//    @Column("user_id")
-//    private UUID userId;
     @Column("query_id")
     private UUID queryId;
+    @Column("user_id")
+    private UUID userId;
     private int vote;
     private String answer;
-    private User user;
 }

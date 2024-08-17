@@ -3,9 +3,9 @@ package com.app.BugBee.handler;
 import com.app.BugBee.dto.AuthRequest;
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.entity.User;
+import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
-import com.app.BugBee.mapper.DtoEntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -45,7 +45,7 @@ public class UserHandler {
                 .filterWhen(user -> repository.existsByEmail(user.getEmail()).map(exists -> !exists))
                 .flatMap(repository::save)
                 .flatMap(user -> ServerResponse.ok().body(BodyInserters
-                                .fromValue(new BooleanAndMessage(true, "Registered Successfully!")))
+                        .fromValue(new BooleanAndMessage(true, "Registered Successfully!")))
                 )
                 .switchIfEmpty(ServerResponse.badRequest().body(BodyInserters
                         .fromValue(new BooleanAndMessage(false, "Email already exists!")))
@@ -82,7 +82,7 @@ public class UserHandler {
                 .flatMap(jwt -> {
                     Map<String, String> tokenBody = Map.of("id_token", jwt);
                     return ServerResponse.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
-                    .body(BodyInserters.fromValue(tokenBody));
+                            .body(BodyInserters.fromValue(tokenBody));
                 });
     }
 

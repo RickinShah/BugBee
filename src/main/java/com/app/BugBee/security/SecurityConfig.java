@@ -16,8 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import java.util.Arrays;
-
 @Configuration
 @EnableReactiveMethodSecurity
 @EnableWebFluxSecurity
@@ -47,9 +45,9 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, JwtTokenProvider tokenProvider) {
         return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth ->
-                        auth.pathMatchers("/auth/**").permitAll()
-                                .pathMatchers("/users/**").authenticated()
-                                .pathMatchers("/admin/**").hasRole("ADMIN")
+                                auth.pathMatchers("/auth/**").permitAll()
+                                        .pathMatchers("/users/**").authenticated()
+                                        .pathMatchers("/admin/**").hasRole("ADMIN")
 //                                .pathMatchers("/users")
                 )
                 .addFilterAt(new JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)

@@ -23,7 +23,8 @@ public class AuthRouter {
         return RouterFunctions.route()
                 .POST("/auth/signup", userHandler::saveUser)
                 .POST("/auth/login", userHandler::getToken)
-                .POST("/auth/send-otp", otpHandler::sendOtp)
+                .POST("/auth/otp/send", otpHandler::sendOtp)
+                .POST("/auth/otp/validate", otpHandler::validateOtp)
                 .build();
     }
 }

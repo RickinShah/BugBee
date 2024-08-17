@@ -70,12 +70,10 @@ public class JwtTokenProvider {
         Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(AUTHORITIES_KEY).toString());
 
         User principal = new User(claims.getSubject(), "", authorities.toString());
-//        System.out.println(authorities);
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
 
     }
-
 
 
 }
