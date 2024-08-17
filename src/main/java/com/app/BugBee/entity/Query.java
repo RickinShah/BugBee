@@ -8,7 +8,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -23,6 +22,6 @@ public class Query {
     private String media;
     @Column("media_type")
     private String mediaType;
-    private User user;
+    private UUID userId;
     private Flux<Answer> answers;
 }
