@@ -2,6 +2,7 @@ package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.entity.Otp;
+import com.app.BugBee.entity.User;
 import com.app.BugBee.repository.OtpRepository;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
@@ -9,6 +10,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -39,8 +41,8 @@ public class OtpHandler {
     private String from;
 
     public Mono<ServerResponse> sendOtp(ServerRequest request) {
-        return request.bodyToMono(String.class)
-                .flatMap(repository::findByEmail)
+        return request.bodyToMono(User.class)
+                .flatMap(user -> repository.findByEmail(user.getEmail()))
                 .flatMap(user -> {
                     int otpValue = new SecureRandom().nextInt(100000, 1000000);
                     return Mono.just(Otp.builder()
@@ -49,7 +51,9 @@ public class OtpHandler {
                                     .expirationTime(System.currentTimeMillis() + 15 * 60 * 1000)
                                     .build()
                             )
+                            .doOnNext(System.out::println)
                             .flatMap(otpRepository::save)
+                            .doOnNext(System.out::println)
                             .map(otpMono -> {
                                 try {
                                     MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -58,7 +62,7 @@ public class OtpHandler {
                                     mimeMessageHelper.setTo(user.getEmail());
                                     mimeMessageHelper.setSubject("One-Time Password from BugBee");
                                     mimeMessageHelper.setText(
-                                            "Hello " + user.getName() + ", <strong>" + otpMono.getOtp()
+                                            "Hello " + user.getName() + ", <strong>" + otpValue
                                                     + "</strong> is your One-Time Password(OTP) from BugBee",
                                             true
                                     );

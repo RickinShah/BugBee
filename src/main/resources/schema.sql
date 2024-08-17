@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DROP TABLE IF EXISTS answers;
 DROP TABLE IF EXISTS queries;
+DROP TABLE IF EXISTS otps;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -15,6 +16,17 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users(email, name, password, roles) VALUES ('rickin.shah17403@gmail.com', 'Rickin Shah', '$2a$10$w7V3R3hvUwQg2aHwBAvwX.Feok1qsfCS1sNCoMfJUorxwVJHy0pRu', 'ROLE_ADMIN');
+
+CREATE TABLE IF NOT EXISTS otps (
+    user_id UUID NOT NULL,
+    otp INTEGER NOT NULL,
+    expiration_time BIGINT NOT NULL,
+    PRIMARY KEY(user_id),
+    CONSTRAINT fk_otps_users
+        FOREIGN KEY(user_id)
+            REFERENCES users(id)
+                ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS queries (
     id UUID DEFAULT uuid_generate_v4(),
