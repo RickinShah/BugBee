@@ -81,7 +81,8 @@ public class UserHandler {
                 .map(auth -> tokenProvider.createToken(auth))
                 .flatMap(jwt -> {
                     Map<String, String> tokenBody = Map.of("id_token", jwt);
-                    return ServerResponse.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt).body(BodyInserters.fromValue(tokenBody));
+                    return ServerResponse.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
+                    .body(BodyInserters.fromValue(tokenBody));
                 });
     }
 
