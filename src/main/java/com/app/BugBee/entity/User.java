@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
@@ -21,7 +22,8 @@ public class User {
     private String name;
     private String password;
     private String roles;
-    private Boolean nsfw;
+    @Column("show_nsfw")
+    private Boolean showNsfw = false;
 
     public User(String email, String password, String roles) {
         this.email = email;
