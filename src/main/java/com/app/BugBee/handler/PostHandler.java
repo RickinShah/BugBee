@@ -1,9 +1,9 @@
 package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.BooleanAndMessage;
-import com.app.BugBee.dto.QueryDto;
-import com.app.BugBee.dto.QueryUserDto;
-import com.app.BugBee.entity.Question;
+import com.app.BugBee.dto.PostDto;
+import com.app.BugBee.dto.PostUserDto;
+import com.app.BugBee.entity.Post;
 import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.QueryRepository;
 import com.app.BugBee.repository.UserRepository;
@@ -29,7 +29,7 @@ public class QueryHandler {
 
     public Mono<ServerResponse> insertQuery(ServerRequest request) {
         String token = request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7);
-        return request.bodyToMono(Question.class)
+        return request.bodyToMono(Post.class)
                 .doOnNext(question -> question.setUserId(tokenProvider.getUsername(token)))
                 .flatMap(repository::save)
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters
@@ -41,10 +41,10 @@ public class QueryHandler {
     }
 
     public Mono<ServerResponse> getQueryWithUser(ServerRequest request) {
-        return request.bodyToMono(Question.class)
+        return request.bodyToMono(Post.class)
                 .flatMap(question -> repository.findById(question.getId()))
                 .flatMap(question -> userRepository.findById(question.getUserId())
-                        .map(user -> new QueryUserDto(
+                        .map(user -> new PostUserDto(
                                 DtoEntityMapper.queryToDto(question),
                                 DtoEntityMapper.userToDto(user))
                         )
@@ -54,9 +54,9 @@ public class QueryHandler {
 
     public Mono<ServerResponse> getQueriesByUserId(ServerRequest request) {
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
-                request.bodyToMono(Question.class)
+                request.bodyToMono(Post.class)
                         .flatMapMany(question -> repository.findByUserId(question.getUserId()))
-                        .map(DtoEntityMapper::queryToDto), QueryDto.class
+                        .map(DtoEntityMapper::queryToDto), PostDto.class
         ));
     }
 }

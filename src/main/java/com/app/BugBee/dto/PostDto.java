@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QueryDto {
+public class PostDto {
     //    private UUID id;
     private String title;
     private String query;
