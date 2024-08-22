@@ -1,8 +1,9 @@
 -- Needed to only run once
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-DROP TABLE IF EXISTS answers;
-DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS replies;
+DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS otps;
 DROP TABLE IF EXISTS users;
 
@@ -12,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(50) NOT NULL,
     password VARCHAR(100) NOT NULL,
     roles VARCHAR(15) NOT NULL DEFAULT 'ROLE_USER',
-    nsfw BOOLEAN NOT NULL DEFAULT FALSE,
+    show_nsfw BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY(id)
 );
 
@@ -29,34 +30,56 @@ CREATE TABLE IF NOT EXISTS otps (
                 ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS questions (
+CREATE TABLE IF NOT EXISTS posts (
     id UUID DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
     title VARCHAR(50) NOT NULL,
-    query VARCHAR(500) NOT NULL,
-    media VARCHAR(50) DEFAULT NULL,
-    media_type VARCHAR(10) DEFAULT NULL,
-    posted_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    post VARCHAR(500) NOT NULL,
+    type_of_post VARCHAR(15) NOT NULL,
+    upvote SMALLINT NOT NULL DEFAULT 0,
+    downvote SMALLINT NOT NULL DEFAULT 0,
+    is_nsfw BOOLEAN NOT NULL,
+    time TIMESTAMP NOT NULL,
     PRIMARY KEY(id),
-    CONSTRAINT fk_queries_users
+    CONSTRAINT fk_posts_users
         FOREIGN KEY(user_id)
             REFERENCES users(id)
                 ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS answers (
-    id SMALLINT GENERATED ALWAYS AS IDENTITY,
+CREATE TABLE IF NOT EXISTS comments (
+    id UUID DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
-    question_id UUID NOT NULL,
-    vote SMALLINT NOT NULL DEFAULT 0,
-    answer VARCHAR(1500) NOT NULL,
-    posted_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    post_id UUID NOT NULL,
+    comment VARCHAR(1500) NOT NULL,
+    upvote SMALLINT NOT NULL DEFAULT 0,
+    downvote SMALLINT NOT NULL DEFAULT 0,
+    time TIMESTAMP NOT NULL,
     PRIMARY KEY(id),
-    CONSTRAINT fk_answers_questions
-        FOREIGN KEY(question_id)
-            REFERENCES questions(id)
+    CONSTRAINT fk_comments_posts
+        FOREIGN KEY(post_id)
+            REFERENCES posts(id)
                 ON DELETE CASCADE,
-    CONSTRAINT fk_answers_users
+    CONSTRAINT fk_comments_users
+        FOREIGN KEY(user_id)
+            REFERENCES users(id)
+                ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS replies (
+    id UUID DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    comment_id UUID NOT NULL,
+    reply VARCHAR(1500) NOT NULL,
+    upvote SMALLINT NOT NULL DEFAULT 0,
+    downvote SMALLINT NOT NULL DEFAULT 0,
+    time TIMESTAMP NOT NULL,
+    PRIMARY KEY(id),
+    CONSTRAINT fk_replies_comments
+        FOREIGN KEY(comment_id)
+            REFERENCES comments(id)
+                ON DELETE CASCADE,
+    CONSTRAINT fk_replies_users
         FOREIGN KEY(user_id)
             REFERENCES users(id)
                 ON DELETE SET NULL
