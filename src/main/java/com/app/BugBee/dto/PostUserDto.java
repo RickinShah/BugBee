@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class QueryUserDto {
-    private QueryDto queryDto;
+public class PostUserDto {
+    private PostDto postDto;
     private UserDto userDto;
 }

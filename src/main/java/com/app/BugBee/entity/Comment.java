@@ -8,21 +8,22 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table("comments")
+@Table("bugbee.comments")
 public class Comment {
     @Id
-    private UUID id;
+    private long id;
     @Column("post_id")
-    private UUID postId;
+    private long postId;
     @Column("user_id")
-    private UUID userId;
+    private long userId;
     private String comment;
     private short upvote;
     private short downvote;
-    private Timestamp time;
+    private LocalDate date;
 }

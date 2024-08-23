@@ -24,7 +24,7 @@ public class SecurityConfig {
     @Bean
     public ReactiveUserDetailsService userDetailsService(UserRepository users) {
         return (username) -> users.findByEmail(username)
-                .map(u -> User.withUsername(u.getId().toString())
+                .map(u -> User.withUsername(String.valueOf(u.getId()))
                         .password(u.getPassword())
                         .authorities(u.getRoles())
                         .accountExpired(false)
@@ -46,7 +46,7 @@ public class SecurityConfig {
         return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth ->
                                 auth.pathMatchers("/auth/**").permitAll()
-                                        .pathMatchers("/users/**").authenticated()
+                                        .pathMatchers("/users/**", "/posts/**").authenticated()
                                         .pathMatchers("/admin/**").hasRole("ADMIN")
 //                                .pathMatchers("/users")
                 )

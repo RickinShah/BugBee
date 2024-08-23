@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @SuppressWarnings("unchecked")
 @Repository
-public interface OtpRepository extends R2dbcRepository<Otp, UUID> {
+public interface OtpRepository extends R2dbcRepository<Otp, Long> {
 
     @SuppressWarnings("NullableProblems")
     @Modifying

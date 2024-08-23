@@ -8,8 +8,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends R2dbcRepository<User, UUID> {
+public interface UserRepository extends R2dbcRepository<User, Long> {
     Mono<Boolean> existsByEmail(String email);
-
     Mono<User> findByEmail(String email);
 }

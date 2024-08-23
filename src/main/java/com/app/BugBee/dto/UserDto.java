@@ -12,7 +12,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Component
 public class UserDto {
-    private UUID id;
+    private long id;
     private String email;
     private String name;
+    private boolean showNsfw;
 }

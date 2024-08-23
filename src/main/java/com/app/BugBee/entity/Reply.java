@@ -8,21 +8,22 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table("replies")
+@Table("bugbee.replies")
 public class Reply {
     @Id
-    private UUID id;
+    private long id;
     @Column("user_id")
-    private UUID userId;
+    private long userId;
     @Column("comment_id")
-    private UUID commentId;
+    private long commentId;
     private String reply;
     private short upvote;
     private short downvote;
-    private Timestamp time;
+    private LocalDate date;
 }

@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Date;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -46,9 +45,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public UUID getUsername(String token) {
+    public long getUsername(String token) {
         Claims claims = parser.parseSignedClaims(token).getPayload();
-        return UUID.fromString(claims.getSubject());
+        return Long.parseLong(claims.getSubject());
     }
 
     public boolean validateToken(String token) {

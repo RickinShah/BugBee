@@ -14,12 +14,12 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "otps")
+@Table("bugbee.otps")
 public class Otp {
     @Id
     @Column("user_id")
-    private UUID userId;
+    private long userId;
     private int otp;
     @Column("expiration_time")
-    long expirationTime;
+    private long expirationTime;
 }

@@ -13,11 +13,11 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "users")
+@Table("bugbee.users")
 @Builder
 public class User {
     @Id
-    private UUID id;
+    private long id;
     private String email;
     private String name;
     private String password;

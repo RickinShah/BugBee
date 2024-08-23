@@ -4,13 +4,23 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostDto {
-    //    private UUID id;
+    private long id;
+    private long userId;
+    private String username;
     private String title;
-    private String query;
-    private String media;
-    private String mediaType;
+    private String post;
+    private String typeOfPost;
+    private short upvote;
+    private short downvote;
+    private boolean isNsfw;
+    private LocalDate date;
+//    private Timestamp
 }

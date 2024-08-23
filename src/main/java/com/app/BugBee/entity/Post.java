@@ -9,17 +9,18 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table("queries")
+@Table("bugbee.posts")
 public class Post {
     @Id
-    private UUID id;
+    private long id;
     @Column("user_id")
-    private UUID userId;
+    private long userId;
     private String title;
     private String post;
     @Column("type_of_post")
@@ -28,5 +29,5 @@ public class Post {
     private short downvote;
     @Column("is_nsfw")
     private boolean isNsfw;
-    private Timestamp time;
+    private LocalDate date;
 }
