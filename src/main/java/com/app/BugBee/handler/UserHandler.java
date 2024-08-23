@@ -2,7 +2,9 @@ package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.AuthRequest;
 import com.app.BugBee.dto.BooleanAndMessage;
+import com.app.BugBee.dto.UserDto;
 import com.app.BugBee.entity.User;
+import com.app.BugBee.enums.ROLES;
 import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
@@ -15,23 +17,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
 @Service
 public class UserHandler {
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
 
-    @Autowired
-    private ReactiveAuthenticationManager authenticationManager;
+    private final ReactiveAuthenticationManager authenticationManager;
 
-    @Autowired
-    private JwtTokenProvider tokenProvider;
+    private final JwtTokenProvider tokenProvider;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserHandler(UserRepository repository, ReactiveAuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, PasswordEncoder passwordEncoder) {
+        this.repository = repository;
+        this.authenticationManager = authenticationManager;
+        this.tokenProvider = tokenProvider;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public Mono<ServerResponse> getUser(ServerRequest request) {
         return request.bodyToMono(String.class)
@@ -86,4 +92,17 @@ public class UserHandler {
                 });
     }
 
+    public Mono<ServerResponse> saveUsers(ServerRequest request) {
+        return ServerResponse.ok().body(Flux.range(1, 100)
+                .map(i -> new User(0, "user" + i + "@gmail.com", "user " + i, passwordEncoder.encode("user " + i), ROLES.ROLE_USER.name(), false))
+                .flatMap(repository::save)
+                .map(DtoEntityMapper::userToDto), UserDto.class);
+    }
+
+    public Mono<ServerResponse> getUsers(ServerRequest request) {
+        return ServerResponse.ok().body(BodyInserters.fromPublisher(
+                repository.findAll()
+                        .map(DtoEntityMapper::userToDto), UserDto.class
+        ));
+    }
 }

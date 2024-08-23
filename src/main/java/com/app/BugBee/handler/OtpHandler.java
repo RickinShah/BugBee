@@ -22,17 +22,17 @@ import java.security.SecureRandom;
 @Service
 public class OtpHandler {
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
 
-    @Autowired
-    private OtpRepository otpRepository;
+    private final OtpRepository otpRepository;
 
-    @Autowired
-    private JwtTokenProvider tokenProvider;
+    private final MailSenderUtils mailSender;
 
-    @Autowired
-    MailSenderUtils mailSender;
+    public OtpHandler(UserRepository repository, OtpRepository otpRepository, MailSenderUtils mailSender) {
+        this.repository = repository;
+        this.otpRepository = otpRepository;
+        this.mailSender = mailSender;
+    }
 
     public Mono<ServerResponse> sendOtp(ServerRequest request) {
         return request.bodyToMono(User.class)
