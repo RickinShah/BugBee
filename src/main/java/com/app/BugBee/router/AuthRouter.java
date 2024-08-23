@@ -12,11 +12,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Configuration
 public class AuthRouter {
 
-    @Autowired
-    private UserHandler userHandler;
+    private final UserHandler userHandler;
 
-    @Autowired
-    private OtpHandler otpHandler;
+    private final OtpHandler otpHandler;
+
+    public AuthRouter(UserHandler userHandler, OtpHandler otpHandler) {
+        this.userHandler = userHandler;
+        this.otpHandler = otpHandler;
+    }
 
     @Bean
     public RouterFunction<ServerResponse> authRouting() {

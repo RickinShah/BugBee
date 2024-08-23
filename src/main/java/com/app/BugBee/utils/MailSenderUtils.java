@@ -17,11 +17,14 @@ import java.util.Objects;
 @Component
 public class MailSenderUtils {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-    @Value("${SPRING_EMAIL}")
+    @Value("${SPRING_MAIL_EMAIL}")
     private String from;
+
+    public MailSenderUtils(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 
     public BooleanAndMessage sendMail(String to, String subject, String body, String attachment) {
         try {

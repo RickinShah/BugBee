@@ -1,6 +1,6 @@
 package com.app.BugBee.router;
 
-import com.app.BugBee.handler.UserHandler;
+import com.app.BugBee.handler.PostHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -8,19 +8,18 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
-public class UserRouter {
-    private final UserHandler handler;
+public class PostRouter {
+    private final PostHandler handler;
 
-    public UserRouter(UserHandler handler) {
+    public PostRouter(PostHandler handler) {
         this.handler = handler;
     }
 
     @Bean
-    public RouterFunction<ServerResponse> userRouting() {
+    public RouterFunction<ServerResponse> postRouting() {
         return RouterFunctions.route()
-                .GET("/users/get", handler::getUser)
-                .PUT("/users/password/update", handler::updatePassword)
-                .DELETE("/users/delete", handler::deleteUser)
+                .POST("/posts/upload", handler::uploadPost)
+                .DELETE("/posts/delete", handler::deletePost)
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 package com.app.BugBee.router;
 
-import com.app.BugBee.handler.AdminHandler;
+import com.app.BugBee.handler.PostHandler;
+import com.app.BugBee.handler.UserHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,14 +11,21 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
 public class AdminRouter {
-    @Autowired
-    private AdminHandler handler;
+    private final UserHandler userHandler;
+
+    private final PostHandler postHandler;
+
+    public AdminRouter(UserHandler userHandler, PostHandler postHandler) {
+        this.userHandler = userHandler;
+        this.postHandler = postHandler;
+    }
 
     @Bean
     public RouterFunction<ServerResponse> adminRouting() {
         return RouterFunctions.route()
-                .POST("/admin/save-all", handler::saveUsers)
-                .GET("/admin/users", handler::getUsers)
+                .POST("/admin/save-all", userHandler::saveUsers)
+                .GET("/admin/users", userHandler::getUsers)
+                .GET("/admin/posts/all", postHandler::getAllPosts)
                 .build();
     }
 }
