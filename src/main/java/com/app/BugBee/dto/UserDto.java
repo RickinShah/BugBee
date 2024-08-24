@@ -13,6 +13,7 @@ import java.util.UUID;
 @Component
 public class UserDto {
     private long id;
+    private String username;
     private String email;
     private String name;
     private boolean showNsfw;

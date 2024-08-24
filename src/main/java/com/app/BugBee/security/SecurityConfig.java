@@ -23,7 +23,7 @@ public class SecurityConfig {
 
     @Bean
     public ReactiveUserDetailsService userDetailsService(UserRepository users) {
-        return (username) -> users.findByEmail(username)
+        return (username) -> users.findByUsernameOrEmail(username, username)
                 .map(u -> User.withUsername(String.valueOf(u.getId()))
                         .password(u.getPassword())
                         .authorities(u.getRoles())

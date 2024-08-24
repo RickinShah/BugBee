@@ -1,6 +1,3 @@
--- Needed to only run once
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 CREATE SCHEMA IF NOT EXISTS bugbee;
 
 CREATE SEQUENCE IF NOT EXISTS bugbee.table_id_seq START WITH 1 INCREMENT BY 1;
@@ -35,7 +32,7 @@ END;
 --     END;
 -- $$ LANGUAGE PLPGSQL;
 
-
+-- Don't change the sequence of these tables
 DROP TABLE IF EXISTS bugbee.post_votes;
 DROP TABLE IF EXISTS bugbee.replies;
 DROP TABLE IF EXISTS bugbee.comments;
@@ -45,6 +42,7 @@ DROP TABLE IF EXISTS bugbee.users;
 
 CREATE TABLE IF NOT EXISTS bugbee.users (
     id BIGINT DEFAULT bugbee.next_id(),
+    username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(50) NOT NULL,
     password VARCHAR(100) NOT NULL,
@@ -53,7 +51,9 @@ CREATE TABLE IF NOT EXISTS bugbee.users (
     PRIMARY KEY(id)
 );
 
-INSERT INTO bugbee.users(email, name, password, roles) VALUES ('rickin.shah17403@gmail.com', 'Rickin Shah', '$2a$10$w7V3R3hvUwQg2aHwBAvwX.Feok1qsfCS1sNCoMfJUorxwVJHy0pRu', 'ROLE_ADMIN');
+-- Adding a user as ROLE_ADMIN
+-- Password: admin
+INSERT INTO bugbee.users(email, username, name, password, roles) VALUES ('rickin.shah17403@gmail.com', 'rickin_shah', 'Rickin Shah', '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS', 'ROLE_ADMIN');
 
 CREATE TABLE IF NOT EXISTS bugbee.otps (
     user_id BIGINT DEFAULT bugbee.next_id(),
