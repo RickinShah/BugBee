@@ -19,7 +19,8 @@ public class PostRouter {
     public RouterFunction<ServerResponse> postRouting() {
         return RouterFunctions.route()
                 .POST("/posts/upload", handler::uploadPost)
-                .DELETE("/posts/delete", handler::deletePost)
+//                .DELETE("/posts/delete", handler::deletePost)
+                .PUT("/posts/upvote", handler::votePost)
                 .build();
     }
 }
