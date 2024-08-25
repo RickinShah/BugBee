@@ -13,7 +13,6 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Table("bugbee.otps")
 public class Otp {
     @Id

@@ -2,22 +2,23 @@ CREATE SCHEMA IF NOT EXISTS bugbee;
 
 CREATE SEQUENCE IF NOT EXISTS bugbee.table_id_seq START WITH 1 INCREMENT BY 1;
 
-CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS '
-DECLARE
-    our_epoch bigint := 1314220021721;
-    seq_id bigint;
-    now_millis bigint;
-    shard_id int := 5;
-BEGIN
-    SELECT MOD(nextval(''bugbee.table_id_seq''), 1024) INTO seq_id;  SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000) INTO now_millis;
-    result := (now_millis - our_epoch) << 23;
-    result := result | (shard_id <<10);
-    result := result | (seq_id);
-END;
-' LANGUAGE PLPGSQL;
+-- NEEDED TO ONLY RUN ONCE
+-- CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS '
+-- DECLARE
+--     our_epoch bigint := 1314220021721;
+--     seq_id bigint;
+--     now_millis bigint;
+--     shard_id int := 5;
+-- BEGIN
+--     SELECT MOD(nextval(''bugbee.table_id_seq''), 1024) INTO seq_id;  SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000) INTO now_millis;
+--     result := (now_millis - our_epoch) << 23;
+--     result := result | (shard_id <<10);
+--     result := result | (seq_id);
+-- END;
+-- ' LANGUAGE PLPGSQL;
 
 
--- ORIGINAL CODE
+-- ORIGINAL CODE (if you want to add function directly to postgresql db)
 -- CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS $$
 --     DECLARE
 --         our_epoch bigint := 1314220021721;
@@ -32,28 +33,39 @@ END;
 --     END;
 -- $$ LANGUAGE PLPGSQL;
 
+
 -- Don't change the sequence of these tables
-DROP TABLE IF EXISTS bugbee.post_votes;
-DROP TABLE IF EXISTS bugbee.replies;
-DROP TABLE IF EXISTS bugbee.comments;
-DROP TABLE IF EXISTS bugbee.posts;
-DROP TABLE IF EXISTS bugbee.otps;
-DROP TABLE IF EXISTS bugbee.users;
+-- Uncomment below if you want functionality like DROP-CREATE
+-- DROP TABLE IF EXISTS bugbee.reply_votes;
+-- DROP TABLE IF EXISTS bugbee.comment_votes;
+-- DROP TABLE IF EXISTS bugbee.post_votes;
+-- DROP TABLE IF EXISTS bugbee.replies;
+-- DROP TABLE IF EXISTS bugbee.comments;
+-- DROP TABLE IF EXISTS bugbee.posts;
+-- DROP TABLE IF EXISTS bugbee.otps;
+-- DROP TABLE IF EXISTS bugbee.users;
+
 
 CREATE TABLE IF NOT EXISTS bugbee.users (
     id BIGINT DEFAULT bugbee.next_id(),
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(50) NOT NULL,
-    password VARCHAR(100) NOT NULL,
+    password VARCHAR(64) NOT NULL,
     roles VARCHAR(15) NOT NULL DEFAULT 'ROLE_USER',
     show_nsfw BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY(id)
 );
 
 -- Adding a user as ROLE_ADMIN
+-- Username: admin
 -- Password: admin
-INSERT INTO bugbee.users(email, username, name, password, roles) VALUES ('rickin.shah17403@gmail.com', 'rickin_shah', 'Rickin Shah', '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS', 'ROLE_ADMIN');
+-- INSERT INTO bugbee.users(email, username, name, password, roles) VALUES (
+--     'rickinshah.21.cs@iite.indusuni.ac.in',
+--     'admin',
+--     'Admin',
+--     '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
+--     'ROLE_ADMIN');
 
 CREATE TABLE IF NOT EXISTS bugbee.otps (
     user_id BIGINT DEFAULT bugbee.next_id(),
@@ -132,6 +144,38 @@ CREATE TABLE IF NOT EXISTS bugbee.post_votes (
             REFERENCES bugbee.posts(id)
                 ON DELETE CASCADE,
     CONSTRAINT fk_post_votes_users
+        FOREIGN KEY (user_id)
+            REFERENCES bugbee.users(id)
+                ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS bugbee.comment_votes (
+    id BIGINT DEFAULT bugbee.next_id(),
+    comment_id BIGINT,
+    user_id BIGINT,
+    type_of_vote BOOLEAN NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_comment_votes_comments
+        FOREIGN KEY (comment_id)
+            REFERENCES bugbee.comments(id)
+                ON DELETE CASCADE,
+    CONSTRAINT fk_comment_votes_users
+        FOREIGN KEY (user_id)
+            REFERENCES bugbee.users(id)
+                ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS bugbee.reply_votes (
+    id BIGINT DEFAULT bugbee.next_id(),
+    reply_id BIGINT,
+    user_id BIGINT,
+    type_of_vote BOOLEAN NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_reply_votes_replies
+        FOREIGN KEY (reply_id)
+            REFERENCES bugbee.replies(id)
+                ON DELETE CASCADE,
+    CONSTRAINT fk_reply_votes_users
         FOREIGN KEY (user_id)
             REFERENCES bugbee.users(id)
                 ON DELETE SET NULL

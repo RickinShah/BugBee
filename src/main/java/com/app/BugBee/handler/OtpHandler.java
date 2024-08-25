@@ -6,10 +6,8 @@ import com.app.BugBee.entity.Otp;
 import com.app.BugBee.entity.User;
 import com.app.BugBee.repository.OtpRepository;
 import com.app.BugBee.repository.UserRepository;
-import com.app.BugBee.security.JwtTokenProvider;
 import com.app.BugBee.utils.MailSenderUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -36,7 +34,7 @@ public class OtpHandler {
 
     public Mono<ServerResponse> sendOtp(ServerRequest request) {
         return request.bodyToMono(User.class)
-                .flatMap(user -> repository.findByEmail(user.getEmail()))
+                .flatMap(user -> repository.findByUsernameOrEmail(user.getUsername(), user.getUsername()))
                 .flatMap(this::createOtpAndSendOtpMail)
                 .flatMap(result -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(result.isSuccess(), result.getMessage())))
@@ -49,7 +47,7 @@ public class OtpHandler {
     public Mono<ServerResponse> validateOtp(ServerRequest request) {
         Mono<AuthOtp> authOtpMono = request.bodyToMono(AuthOtp.class);
         return authOtpMono
-                .flatMap(authOtp -> repository.findByEmail(authOtp.getEmail())
+                .flatMap(authOtp -> repository.findByUsernameOrEmail(authOtp.getEmail(), authOtp.getEmail())
                         .flatMap(user -> otpRepository.findById(user.getId()))
                         .switchIfEmpty(Mono.error(new RuntimeException("OTP not found!")))
                         .filter(otp -> otp.getExpirationTime() >= System.currentTimeMillis())
@@ -70,17 +68,13 @@ public class OtpHandler {
 
     public Mono<BooleanAndMessage> createOtpAndSendOtpMail(User user) {
         int otpValue = new SecureRandom().nextInt(100000, 1000000);
-        Otp otp = Otp.builder()
-                .otp(otpValue)
-                .userId(user.getId())
-                .expirationTime(System.currentTimeMillis() + 15 * 60 * 1000)
-                .build();
+        Otp otp = new Otp(user.getId(), otpValue, System.currentTimeMillis() + 15 * 60 * 1000);
 
         return otpRepository.save(otp)
                 .flatMap(otpObj -> repository.findById(otp.getUserId()))
                 .map(e -> mailSender.sendMail(user.getEmail(),
                         "One-Time Password from BugBee",
-                        "Hello " + user.getName() + ", <strong>" + otpValue
+                        "Hello " + user.getUsername() + ", <strong>" + otpValue
                                 + "</strong> is your One-Time Password(OTP) from BugBee. OTP is valid upto next 15 minutes.",
                         null
                         ))

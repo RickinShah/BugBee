@@ -10,7 +10,6 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Component
 public class UserDto {
     private long id;
     private String username;
