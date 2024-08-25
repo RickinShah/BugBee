@@ -12,6 +12,7 @@ This Project is currently in progress.
 - Spring Webflux - Reactive Framework
 - PostgreSQL - Database
 - Spring Security - Authentication
+- Nginx - Reverse Proxy
 
 ## Getting Started
 
