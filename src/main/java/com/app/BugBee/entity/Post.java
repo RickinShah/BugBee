@@ -1,17 +1,13 @@
 package com.app.BugBee.entity;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -19,16 +15,18 @@ import java.util.UUID;
 @Table("bugbee.posts")
 public class Post {
     @Id
-    private long id;
-    @Column("user_id")
-    private long userId;
+    @Column("post_id")
+    private long postId;
     private String title;
-    private String post;
+    private String content;
     @Column("type_of_post")
     private String typeOfPost;
     private short upvote;
     private short downvote;
-    @Column("is_nsfw")
-    private boolean isNsfw;
+    @Column("total_comments")
+    private short totalComments;
+    @Column("nsfw")
+    private boolean nsfw;
     private LocalDate date;
+    private User user;
 }

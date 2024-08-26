@@ -8,8 +8,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,14 +15,15 @@ import java.util.UUID;
 @Builder
 public class User {
     @Id
-    private long id;
+    @Column("user_id")
+    private long userId;
     private String username;
     private String email;
     private String name;
     private String password;
     private String roles;
     @Column("show_nsfw")
-    private Boolean showNsfw = false;
+    private boolean showNsfw = false;
 
     public User(String email, String password, String roles) {
         this.email = email;

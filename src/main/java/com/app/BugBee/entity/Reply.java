@@ -7,9 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,13 +15,12 @@ import java.util.UUID;
 @Table("bugbee.replies")
 public class Reply {
     @Id
-    private long id;
-    @Column("user_id")
-    private long userId;
-    @Column("comment_id")
-    private long commentId;
+    @Column("reply_id")
+    private long replyId;
     private String reply;
     private short upvote;
     private short downvote;
     private LocalDate date;
+    private User user;
+    private Comment comment;
 }

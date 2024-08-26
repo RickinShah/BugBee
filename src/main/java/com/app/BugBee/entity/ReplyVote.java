@@ -13,11 +13,12 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("bugbee.reply_votes")
 public class ReplyVote {
     @Id
-    private long id;
+    @Column("reply_vote_id")
+    private long replyVoteId;
     @Column("reply_id")
     private long replyId;
     @Column("user_id")
     private long userId;
-    @Column("type_of_vote")
-    private boolean typeOfVote;
+    @Column("upvote")
+    private boolean upvote;
 }

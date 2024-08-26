@@ -12,17 +12,15 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class PostDto {
-    private long id;
-    private long userId;
-    private String username;
+    private long postId;
     private String title;
-    private String post;
+    private String content;
     private String typeOfPost;
     private short upvote;
     private short downvote;
+    private short totalComments;
     private boolean isNsfw;
     private LocalDate date;
-//    private Timestamp
+    private UserDto user;
 }
