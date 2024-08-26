@@ -48,7 +48,7 @@ public class OtpHandler {
         Mono<AuthOtp> authOtpMono = request.bodyToMono(AuthOtp.class);
         return authOtpMono
                 .flatMap(authOtp -> repository.findByUsernameOrEmail(authOtp.getEmail(), authOtp.getEmail())
-                        .flatMap(user -> otpRepository.findById(user.getId()))
+                        .flatMap(user -> otpRepository.findById(user.getUserId()))
                         .switchIfEmpty(Mono.error(new RuntimeException("OTP not found!")))
                         .filter(otp -> otp.getExpirationTime() >= System.currentTimeMillis())
                         .switchIfEmpty(Mono.error(new RuntimeException("OTP Expired!")))
@@ -68,7 +68,7 @@ public class OtpHandler {
 
     public Mono<BooleanAndMessage> createOtpAndSendOtpMail(User user) {
         int otpValue = new SecureRandom().nextInt(100000, 1000000);
-        Otp otp = new Otp(user.getId(), otpValue, System.currentTimeMillis() + 15 * 60 * 1000);
+        Otp otp = new Otp(user.getUserId(), otpValue, System.currentTimeMillis() + 15 * 60 * 1000);
 
         return otpRepository.save(otp)
                 .flatMap(otpObj -> repository.findById(otp.getUserId()))
