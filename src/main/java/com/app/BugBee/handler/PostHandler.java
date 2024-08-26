@@ -2,7 +2,10 @@ package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.dto.PostDto;
+import com.app.BugBee.dto.UserDto;
+import com.app.BugBee.entity.Post;
 import com.app.BugBee.entity.PostVote;
+import com.app.BugBee.entity.User;
 import com.app.BugBee.enums.TYPE_OF_POST;
 import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.PostRepository;
@@ -10,6 +13,7 @@ import com.app.BugBee.repository.PostVoteRepository;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -39,21 +43,16 @@ public class PostHandler {
 
     public Mono<ServerResponse> uploadPost(ServerRequest request) {
         String token = request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7);
-        Mono<PostDto> postDtoMono = request.bodyToMono(PostDto.class)
-                .map(postDto -> PostDto.builder()
-                        .userId(tokenProvider.getUsername(token))
-                        .title(postDto.getTitle())
-                        .post(postDto.getPost())
-                        .isNsfw(false)
-                        .date(LocalDate.now())
-                        .typeOfPost(TYPE_OF_POST.QUESTION.name())
-                        .upvote((short) 0)
-                        .downvote((short) 0)
-                        .build()
-                );
+        Mono<PostDto> postDtoMono = request.bodyToMono(PostDto.class).doOnNext(post -> {
+            post.setTypeOfPost(TYPE_OF_POST.QUESTION.name());
+            post.setDate(LocalDate.now());
+            post.setUser(new UserDto(tokenProvider.getUsername(token), null, null, null, false));
+            log.info(post.getUser().toString());
+        });
         return postDtoMono
                 .map(DtoEntityMapper::dtoToPost)
-                .flatMap(repository::save)
+                .doOnNext(e -> log.info(e.getUser().toString()))
+                .flatMap(repository::savePost)
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters
                         .fromValue(new BooleanAndMessage(true, "Query inserted successfully!")))
                 )
@@ -67,8 +66,7 @@ public class PostHandler {
                 repository.findAll()
                         .map(DtoEntityMapper::postToDto)
                         .flatMap(post ->
-                                userRepository.findById(post.getUserId())
-                                        .doOnNext(user -> post.setUsername(user.getName()))
+                                userRepository.findById(post.getUser().getUserId())
                                         .map(user -> post)
                         ), PostDto.class
         ));
@@ -93,17 +91,17 @@ public class PostHandler {
 
     public Mono<ServerResponse> votePost(ServerRequest request) {
         String token = request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7);
-        Mono<PostVote> postVoteMono = request.bodyToMono(PostVote.class);
+        Mono<PostVote> postVoteMono = request.bodyToMono(PostVote.class)
+                .doOnNext(postVote -> postVote.setUserId(tokenProvider.getUsername(token)));
 
         return postVoteMono
-                .doOnNext(postVote -> postVote.setUserId(tokenProvider.getUsername(token)))
                 .flatMap(postVote -> postVoteRepository.findByUserIdAndPostId(
                                 postVote.getUserId(),
                                 postVote.getPostId())
                         .next()
                         .defaultIfEmpty(new PostVote())
 //                        .doOnNext(vote -> log.info(vote.toString()))
-                        .filter(vote -> vote.getId() != 0)
+                        .filter(vote -> vote.getPostVoteId() != 0)
 //                        .doOnNext(vote -> log.info(vote.toString()))
                         .flatMap(vote -> upvoteOrDownvoteIfAlreadyExists(vote, postVote))
                         .switchIfEmpty(upvoteOrDownvoteIfNotExists(postVote))
@@ -112,12 +110,23 @@ public class PostHandler {
 
     }
 
+    public Mono<ServerResponse> getLatestPosts(ServerRequest request) {
+        Mono<Integer> lastIdMono = request.bodyToMono(Integer.class).defaultIfEmpty(0);
+//        log.info("getLatestPost called!");
+        return ServerResponse.ok().body(BodyInserters.fromPublisher(
+            lastIdMono
+                    .flatMapMany(lastId -> repository.findAll(PageRequest.of(lastId, 5)))
+                    .map(DtoEntityMapper::postToDto)
+                , PostDto.class
+        ));
+    }
+
     public Mono<BooleanAndMessage> upvoteOrDownvoteIfNotExists(PostVote postVote) {
         log.info(postVote.toString());
         return postVoteRepository.save(postVote)
-                .flatMap(postVote1 -> postVote1.isTypeOfVote() ?
-                        repository.incrementUpvoteById(postVote1.getPostId()) :
-                        repository.incrementDownvoteById(postVote1.getPostId())
+                .flatMap(postVote1 -> postVote1.isUpvote() ?
+                        repository.incrementUpvoteByPostId(postVote1.getPostId()) :
+                        repository.incrementDownvoteByPostId(postVote1.getPostId())
                 )
 //                .doOnNext(e -> log.info(e.toString()))
                 .map(e -> new BooleanAndMessage(true, "Upvoted/Downvoted successfully!"))
@@ -125,28 +134,28 @@ public class PostHandler {
     }
 
     public Mono<BooleanAndMessage> upvoteOrDownvoteIfAlreadyExists(PostVote dbPostVote, PostVote postVote) {
-        return dbPostVote.isTypeOfVote() == postVote.isTypeOfVote() ?
+        return dbPostVote.isUpvote() == postVote.isUpvote() ?
                 deleteVote(dbPostVote) :
                 toggleVote(dbPostVote);
     }
 
     public Mono<BooleanAndMessage> deleteVote(PostVote postVote) {
         return postVoteRepository.delete(postVote)
-                .then(postVote.isTypeOfVote() ? repository.decrementUpvoteById(postVote.getPostId()) :
-                        repository.decrementDownvoteById(postVote.getPostId()))
+                .then(postVote.isUpvote() ? repository.decrementUpvoteByPostId(postVote.getPostId()) :
+                        repository.decrementDownvoteByPostId(postVote.getPostId()))
                 .thenReturn(new BooleanAndMessage(true, "Deleted Vote!"));
     }
 
     public Mono<BooleanAndMessage> toggleVote(PostVote postVote) {
-        postVote.setTypeOfVote(!postVote.isTypeOfVote());
-        return postVote.isTypeOfVote() ?
-                repository.decrementDownvoteById(postVote.getPostId())
+        postVote.setUpvote(!postVote.isUpvote());
+        return postVote.isUpvote() ?
+                repository.decrementDownvoteByPostId(postVote.getPostId())
                         .flatMap(e -> postVoteRepository.save(postVote))
-                        .flatMap(e -> repository.incrementUpvoteById(postVote.getPostId()))
+                        .flatMap(e -> repository.incrementUpvoteByPostId(postVote.getPostId()))
                         .thenReturn(new BooleanAndMessage(true, "Upvoted!")) :
-                repository.decrementUpvoteById(postVote.getPostId())
+                repository.decrementUpvoteByPostId(postVote.getPostId())
                         .flatMap(e -> postVoteRepository.save(postVote))
-                        .flatMap(e -> repository.incrementDownvoteById(postVote.getPostId()))
+                        .flatMap(e -> repository.incrementDownvoteByPostId(postVote.getPostId()))
                         .thenReturn(new BooleanAndMessage(true, "Downvoted!"));
 
 

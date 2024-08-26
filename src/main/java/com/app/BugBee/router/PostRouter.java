@@ -21,6 +21,7 @@ public class PostRouter {
                 .POST("/posts/upload", handler::uploadPost)
 //                .DELETE("/posts/delete", handler::deletePost)
                 .PUT("/posts/upvote", handler::votePost)
+                .GET("/posts/get", handler::getLatestPosts)
                 .build();
     }
 }
