@@ -2,14 +2,14 @@ spring:
   application:
     name: BugBee
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/bugbee
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: r2dbc:postgresql://db:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${SPRING_MAIL_EMAIL}
-    password: ${SPRING_MAIL_PASSWORD}
+    username: ${MAIL_EMAIL}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:

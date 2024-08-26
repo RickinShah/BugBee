@@ -19,7 +19,7 @@ public class MailSenderUtils {
 
     private final JavaMailSender mailSender;
 
-    @Value("${SPRING_MAIL_EMAIL}")
+    @Value("${MAIL_EMAIL}")
     private String from;
 
     public MailSenderUtils(JavaMailSender mailSender) {
