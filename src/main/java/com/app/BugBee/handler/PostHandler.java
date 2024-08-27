@@ -1,11 +1,10 @@
 package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.BooleanAndMessage;
+import com.app.BugBee.dto.OffsetAndSize;
 import com.app.BugBee.dto.PostDto;
 import com.app.BugBee.dto.UserDto;
-import com.app.BugBee.entity.Post;
 import com.app.BugBee.entity.PostVote;
-import com.app.BugBee.entity.User;
 import com.app.BugBee.enums.TYPE_OF_POST;
 import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.PostRepository;
@@ -47,11 +46,11 @@ public class PostHandler {
             post.setTypeOfPost(TYPE_OF_POST.QUESTION.name());
             post.setDate(LocalDate.now());
             post.setUser(new UserDto(tokenProvider.getUsername(token), null, null, null, false));
-            log.info(post.getUser().toString());
+//            log.info(post.getUser().toString());
         });
         return postDtoMono
                 .map(DtoEntityMapper::dtoToPost)
-                .doOnNext(e -> log.info(e.getUser().toString()))
+//                .doOnNext(e -> log.info(e.getUser().toString()))
                 .flatMap(repository::savePost)
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters
                         .fromValue(new BooleanAndMessage(true, "Query inserted successfully!")))
@@ -72,6 +71,25 @@ public class PostHandler {
         ));
     }
 
+    public Mono<ServerResponse> updatePost(ServerRequest request) {
+        long postId = Long.parseLong(request.pathVariable("postId"));
+        Mono<PostDto> postDtoMono = request.bodyToMono(PostDto.class)
+                .doOnNext(postDto -> {
+                    postDto.setPostId(postId);
+                    postDto.setDate(LocalDate.now());
+                });
+        return postDtoMono
+                .map(DtoEntityMapper::dtoToPost)
+                .flatMap(repository::savePost)
+                .flatMap(e -> e == 0?
+                        ServerResponse.ok().body(BodyInserters.fromValue(
+                                new BooleanAndMessage(false, "Nothing to delete!")
+                        )) :
+                        ServerResponse.ok().body(BodyInserters.fromValue(
+                                new BooleanAndMessage(true, "Post updated successfully!")
+                        )));
+    }
+
 //    public Mono<ServerResponse> deletePost(ServerRequest request) {
 //        Mono<PostDto> postDtoMono = request.bodyToMono(PostDto.class);
 //        String token = request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7);
@@ -89,10 +107,26 @@ public class PostHandler {
 //                )));
 //    }
 
+    public Mono<ServerResponse> deletePost(ServerRequest request) {
+        String token = request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7);
+        long postId = Long.parseLong(request.pathVariable("postId"));
+
+        return repository.deleteByPostIdAndUserId(postId, tokenProvider.getUsername(token))
+                .flatMap(post -> ServerResponse.ok().body(BodyInserters.fromValue(
+                    new BooleanAndMessage(true, "Post deleted successfully!")
+                )))
+                .switchIfEmpty(ServerResponse.badRequest().body(BodyInserters.fromValue(
+                    new BooleanAndMessage(false, "Something went wrong!")
+                )));
+    }
+
     public Mono<ServerResponse> votePost(ServerRequest request) {
         String token = request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7);
         Mono<PostVote> postVoteMono = request.bodyToMono(PostVote.class)
-                .doOnNext(postVote -> postVote.setUserId(tokenProvider.getUsername(token)));
+                .doOnNext(postVote -> {
+                    postVote.setUserId(tokenProvider.getUsername(token));
+                    postVote.setPostId(Long.parseLong(request.pathVariable("postId")));
+                });
 
         return postVoteMono
                 .flatMap(postVote -> postVoteRepository.findByUserIdAndPostId(
@@ -111,18 +145,19 @@ public class PostHandler {
     }
 
     public Mono<ServerResponse> getLatestPosts(ServerRequest request) {
-        Mono<Integer> lastIdMono = request.bodyToMono(Integer.class).defaultIfEmpty(0);
-//        log.info("getLatestPost called!");
+        Mono<OffsetAndSize> offsetAndSizeMono = request.bodyToMono(OffsetAndSize.class);
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
-            lastIdMono
-                    .flatMapMany(lastId -> repository.findAll(PageRequest.of(lastId, 5)))
+                offsetAndSizeMono
+                    .flatMapMany(offsetAndSize -> repository.findAll(PageRequest.of(
+                            offsetAndSize.getOffset(), offsetAndSize.getSize()
+                    )))
                     .map(DtoEntityMapper::postToDto)
                 , PostDto.class
         ));
     }
 
     public Mono<BooleanAndMessage> upvoteOrDownvoteIfNotExists(PostVote postVote) {
-        log.info(postVote.toString());
+//        log.info(postVote.toString());
         return postVoteRepository.save(postVote)
                 .flatMap(postVote1 -> postVote1.isUpvote() ?
                         repository.incrementUpvoteByPostId(postVote1.getPostId()) :

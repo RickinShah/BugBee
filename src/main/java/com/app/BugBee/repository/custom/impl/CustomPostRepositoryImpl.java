@@ -36,13 +36,27 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
 
     @Override
     public Mono<Long> savePost(Post post) {
+//        log.info(post.toString());
 //        log.info("savePost called");
+        if(post.getPostId() != 0) {
+//            log.info("update");
+            String query = "UPDATE bugbee.posts SET content = :content, title = :title, date = :date WHERE post_id = :postId";
+
+            Mono<Long> result = databaseClient.sql(query)
+                    .bind("content", post.getContent())
+                    .bind("title", post.getTitle())
+                    .bind("postId", post.getPostId())
+                    .bind("date", post.getDate())
+                    .fetch()
+                    .rowsUpdated();
+
+            return result;
+        }
         String query =
-                "INSERT INTO bugbee.posts(title, content, type_of_post," +
-                        "upvote, downvote, total_comments, nsfw, date, user_id)" +
-                " VALUES (:title, :content, :typeOfPost," +
-                        ":upvote, :downvote, :totalComments," +
-                        ":nsfw, :date, :userId)";
+                "INSERT INTO bugbee.posts(title, content, type_of_post, upvote, downvote," +
+                        "total_comments, nsfw, date, user_id)" +
+                        " VALUES (:title, :content, :typeOfPost, :upvote, :downvote," +
+                        ":totalComments, :nsfw, :date, :userId)";
 
         Mono<Long> result = databaseClient.sql(query)
                 .bind("title", post.getTitle())
@@ -57,6 +71,21 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
                 .fetch()
                 .rowsUpdated();
 //        log.info("savePost completed");
+
+        return result;
+    }
+
+    @Override
+    public Mono<Long> deleteByPostIdAndUserId(Long postId, Long userId) {
+        log.info("{} {}", postId, userId);
+        String query = "DELETE FROM bugbee.posts WHERE post_id = :postId AND user_id = :userId";
+
+        Mono<Long> result = databaseClient.sql(query)
+                .bind("postId", postId)
+                .bind("userId", userId)
+                .fetch()
+                .rowsUpdated()
+                .doOnNext(e -> log.info(e.toString()));
 
         return result;
     }

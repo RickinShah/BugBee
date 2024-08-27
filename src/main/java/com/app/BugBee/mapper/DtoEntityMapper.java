@@ -23,17 +23,21 @@ public class DtoEntityMapper {
 
     public static PostDto postToDto(Post post) {
         PostDto postDto = new PostDto();
-        postDto.setUser(new UserDto());
-        BeanUtils.copyProperties(post, postDto);
-        BeanUtils.copyProperties(post.getUser(), postDto.getUser());
+        BeanUtils.copyProperties(post, postDto, "user");
+        if(post.getUser() != null) {
+            postDto.setUser(new UserDto());
+            BeanUtils.copyProperties(post.getUser(), postDto.getUser());
+        }
         return postDto;
     }
 
     public static Post dtoToPost(PostDto postDto) {
         Post post = new Post();
-        post.setUser(new User());
-        BeanUtils.copyProperties(postDto, post);
-        BeanUtils.copyProperties(postDto.getUser(), post.getUser());
+        BeanUtils.copyProperties(postDto, post, "user");
+        if(postDto.getUser() != null) {
+            post.setUser(new User());
+            BeanUtils.copyProperties(postDto.getUser(), post.getUser());
+        }
 
         return post;
     }
