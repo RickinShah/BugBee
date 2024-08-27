@@ -16,6 +16,8 @@ spring:
           auth: true
           starttls:
             enable: true
+
+# comment/remove below lines if you don't have SSL certificates
   ssl:
     bundle:
       jks:
@@ -38,6 +40,7 @@ server:
     key-store: ${SSL_LOCATION}
     key-store-password: ${SSL_PASSWORD}
     key-alias: ${SSL_ALIAS}
+# comment/remove upto here if you don't have SSL certificates
 
 
 #logging:

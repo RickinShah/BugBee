@@ -1,0 +1,47 @@
+volumes:
+  pg-data:
+
+services:
+  app:
+    image: "docker-bugbee:latest"
+    build:
+      context: .
+    container_name: bugbee
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - MAIL_EMAIL=${MAIL_EMAIL}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - SSL_ALIAS=${SSL_ALIAS}
+      - SSL_LOCATION=${SSL_LOCATION}
+      - SSL_PASSWORD=${SSL_PASSWORD}
+      - SSL_CERTIFICATE_LOCATION=${SSL_CERTIFICATE_LOCATION}
+#    ports:
+#      - "8443:8443"
+    volumes:
+      - ${SSL_DIR}:/app/ssl
+
+  db:
+    image: postgres:16
+    container_name: db-bugbee
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:1.27
+    container_name: nginx-bugbee
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ${NGINX_DIR}:/etc/nginx
+      - ${SSL_DIR}:/app/ssl
