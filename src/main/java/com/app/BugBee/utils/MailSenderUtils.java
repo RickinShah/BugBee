@@ -3,7 +3,6 @@ package com.app.BugBee.utils;
 import com.app.BugBee.dto.BooleanAndMessage;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -34,7 +33,7 @@ public class MailSenderUtils {
             mimeMessageHelper.setTo(to);
             mimeMessageHelper.setSubject(subject);
             mimeMessageHelper.setText(body, true);
-            if(attachment != null) {
+            if (attachment != null) {
                 FileSystemResource file = new FileSystemResource(new File(attachment));
                 mimeMessageHelper.addAttachment(Objects.requireNonNull(file.getFilename()), file);
             }

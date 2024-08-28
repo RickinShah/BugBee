@@ -1,13 +1,13 @@
-//package com.app.BugBee.router;
-//
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//import org.springframework.web.reactive.function.server.RouterFunction;
-//import org.springframework.web.reactive.function.server.RouterFunctions;
-//import org.springframework.web.reactive.function.server.ServerResponse;
-//
-//@Configuration
-//public class ReplyRouter {
+package com.app.BugBee.router;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerResponse;
+
+@Configuration
+public class ReplyRouter {
 //    private final ReplyHandler handler;
 //
 //    public ReplyRouter(ReplyHandler replyHandler) {
@@ -23,4 +23,4 @@
 //                .DELETE("/comments/{commentId}/replies/{replyId}", handler::deleteReply)
 //                .build();
 //    }
-//}
+}

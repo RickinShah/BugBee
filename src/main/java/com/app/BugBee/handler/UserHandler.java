@@ -59,10 +59,10 @@ public class UserHandler {
 //                                .doOnNext(booleanAndMessage -> log.info(booleanAndMessage.toString()))
                                 .flatMap(booleanAndMessage ->
                                         booleanAndMessage.isSuccess() ?
-                                        ServerResponse.badRequest().body(
-                                                BodyInserters.fromValue(booleanAndMessage)) :
+                                                ServerResponse.badRequest().body(
+                                                        BodyInserters.fromValue(booleanAndMessage)) :
                                                 repository.saveUser(user)
-                                                .flatMap(userNew -> ServerResponse.ok()
+                                                        .flatMap(userNew -> ServerResponse.ok()
                                                                 .body(BodyInserters.fromValue(
                                                                         new BooleanAndMessage(true, "Sign up successful")
                                                                 )))
@@ -114,7 +114,7 @@ public class UserHandler {
 
     public Mono<ServerResponse> getUsers(ServerRequest request) {
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
-                repository.findUsers()
+                repository.findAll()
                         .map(DtoEntityMapper::userToDto), UserDto.class)
         );
     }
@@ -141,7 +141,6 @@ public class UserHandler {
                         userDto
                 )));
     }
-
 
 
     // Internal Methods below

@@ -22,5 +22,6 @@ public class PostDto {
     private boolean nsfwFlag;
     private LocalDate updatedAt;
     private boolean updateFlag;
-    private UserDto user;
+    private UserInfoDto user;
+    private boolean voteStatus;
 }

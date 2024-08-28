@@ -77,7 +77,7 @@ public class OtpHandler {
                         "Hello " + user.getUsername() + ", <strong>" + otpValue
                                 + "</strong> is your One-Time Password(OTP) from BugBee. OTP is valid upto next 15 minutes.",
                         null
-                        ))
+                ))
                 .defaultIfEmpty(new BooleanAndMessage(false, "Something went wrong!"));
     }
 

@@ -53,10 +53,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
     @Override
     public Mono<User> saveUser(User user) {
-        if(user.getUserId() != 0) {
-            final String query = "UPDATE bugbee.users SET username = :username, email = :email, name = :name," +
+        if (user.getUserId() != 0) {
+            final String query = "WITH updated AS (UPDATE bugbee.users SET username = :username, email = :email, name = :name," +
                     " password = :password, roles = :roles, show_nsfw = :showNsfw, profile_id = :profileId" +
-                    " WHERE user_pid = :userId";
+                    " WHERE user_pid = :userId RETURNING *)" +
+                    "SELECT * FROM updated u LEFT OUTER JOIN bugbee.profiles p" +
+                    " ON u.profile_id = p.profile_pid";
 
             return client.sql(query)
                     .bind("username", user.getUsername())
@@ -69,8 +71,10 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .map(userMapper::apply)
                     .first();
         }
-        final String query = "INSERT INTO bugbee.users(username, email, name, password, roles, show_nsfw, profile_id)" +
-                " VALUES (:username, :email, :name, :password, :roles, :showNsfw, :profileId) RETURNING *";
+        final String query = "WITH inserted AS (INSERT INTO bugbee.users(username, email, name, password, roles, show_nsfw, profile_id)" +
+                " VALUES (:username, :email, :name, :password, :roles, :showNsfw, :profileId) RETURNING *)" +
+                "SELECT * FROM inserted u LEFT OUTER JOIN bugbee.profiles p" +
+                " ON u.profile_id = p.profile_pid";
 
         return client.sql(query)
                 .bind("username", user.getUsername())
@@ -84,7 +88,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .first();
     }
 
-    public Flux<User> findUsers() {
+    public Flux<User> findAll() {
         final String query = "SELECT * FROM bugbee.users u LEFT OUTER JOIN bugbee.profiles p" +
                 " ON u.profile_id = p.profile_pid";
 
