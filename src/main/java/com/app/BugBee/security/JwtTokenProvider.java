@@ -3,7 +3,9 @@ package com.app.BugBee.security;
 import com.app.BugBee.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,11 +24,15 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
     private static final String AUTHORITIES_KEY = "roles";
 
-    final private SecretKey key;
-    final private JwtParser parser;
+    private SecretKey key;
+    private JwtParser parser;
 
-    private JwtTokenProvider() {
-        this.key = Keys.hmacShaKeyFor("fdc79832cbea9abf77bb854adae69935d9493ce1c5810c76da876b379a7b9199".getBytes());
+    @Value("${SECRET_KEY}")
+    private String SECRET_KEY;
+
+    @PostConstruct
+    private void init() {
+        this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
         this.parser = Jwts.parser().verifyWith(this.key).build();
     }
 
