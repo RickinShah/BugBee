@@ -24,4 +24,5 @@ public class PostDto {
     private boolean updateFlag;
     private UserInfoDto user;
     private boolean voteStatus;
+    private boolean votedFlag;
 }

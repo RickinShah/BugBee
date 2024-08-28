@@ -66,7 +66,11 @@ public class OtpHandler {
 
     }
 
-    public Mono<BooleanAndMessage> createOtpAndSendOtpMail(User user) {
+
+
+    // Internal Methods Below
+
+    private Mono<BooleanAndMessage> createOtpAndSendOtpMail(User user) {
         int otpValue = new SecureRandom().nextInt(100000, 1000000);
         Otp otp = new Otp(user.getUserId(), otpValue, System.currentTimeMillis() + 15 * 60 * 1000);
 
