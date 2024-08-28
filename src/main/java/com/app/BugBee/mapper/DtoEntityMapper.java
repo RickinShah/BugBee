@@ -3,6 +3,7 @@ package com.app.BugBee.mapper;
 import com.app.BugBee.dto.PostDto;
 import com.app.BugBee.dto.UserDto;
 import com.app.BugBee.entity.Post;
+import com.app.BugBee.entity.Profile;
 import com.app.BugBee.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -12,12 +13,20 @@ public class DtoEntityMapper {
     public static UserDto userToDto(User user) {
         UserDto userDto = new UserDto();
         BeanUtils.copyProperties(user, userDto);
+        if(user.getProfile() != null) {
+            userDto.setProfile(new Profile());
+            BeanUtils.copyProperties(user.getProfile(), userDto.getProfile());
+        }
         return userDto;
     }
 
     public static User dtoToUser(UserDto userDto) {
         User user = new User();
         BeanUtils.copyProperties(userDto, user);
+        if(userDto.getProfile() != null) {
+            user.setProfile(new Profile());;
+            BeanUtils.copyProperties(userDto.getProfile(), user);
+        }
         return user;
     }
 

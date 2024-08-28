@@ -1,13 +1,15 @@
 package com.app.BugBee.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OffsetAndSize {
-    private int offset;
-    private int size;
+@Builder
+public class PostUserInfoDto {
+    private String username;
+    private String profileFilePath;
 }

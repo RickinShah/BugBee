@@ -1,18 +1,16 @@
 package com.app.BugBee.dto;
 
-import com.app.BugBee.entity.Profile;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
-    private long userId;
+@Builder
+public class UserProfileDto {
     private String username;
-    private String email;
+    private String profileFilePath;
     private String name;
-    private boolean showNsfw;
-    private Profile profile;
 }

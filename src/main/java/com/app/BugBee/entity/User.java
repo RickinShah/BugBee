@@ -15,7 +15,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @Builder
 public class User {
     @Id
-    @Column("user_id")
+    @Column("user_pid")
     private long userId;
     private String username;
     private String email;
@@ -24,6 +24,7 @@ public class User {
     private String roles;
     @Column("show_nsfw")
     private boolean showNsfw = false;
+    private Profile profile;
 
     public User(String email, String password, String roles) {
         this.email = email;

@@ -15,18 +15,23 @@ import java.time.LocalDate;
 @Table("bugbee.posts")
 public class Post {
     @Id
-    @Column("post_id")
+    @Column("post_pid")
     private long postId;
     private String title;
     private String content;
-    @Column("type_of_post")
-    private String typeOfPost;
-    private short upvote;
-    private short downvote;
-    @Column("total_comments")
-    private short totalComments;
-    @Column("nsfw")
-    private boolean nsfw;
-    private LocalDate date;
+    @Column("post_type")
+    private String postType;
+    @Column("upvote_count")
+    private int upvoteCount;
+    @Column("downvote_count")
+    private int downvoteCount;
+    @Column("comment_count")
+    private int commentCount;
+    @Column("nsfw_flag")
+    private boolean nsfwFlag;
+    @Column("updated_at")
+    private LocalDate updatedAt;
+    @Column("update_flag")
+    private boolean updateFlag;
     private User user;
 }

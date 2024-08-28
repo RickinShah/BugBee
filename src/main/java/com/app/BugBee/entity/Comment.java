@@ -15,12 +15,19 @@ import java.time.LocalDate;
 @Table("bugbee.comments")
 public class Comment {
     @Id
-    @Column("comment_id")
+    @Column("comment_pid")
     private long commentId;
-    private String comment;
-    private short upvote;
-    private short downvote;
-    private LocalDate date;
+    private String content;
+    @Column("upvote_count")
+    private int upvoteCount;
+    @Column("upvote_count")
+    private int downvoteCount;
+    @Column("reply_count")
+    private int replyCount;
+    @Column("updated_at")
+    private LocalDate updatedAt;
+    @Column("update_flag")
+    private boolean updateFlag;
     private Post post;
     private User user;
 }

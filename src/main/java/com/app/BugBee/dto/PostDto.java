@@ -5,22 +5,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class PostDto {
     private long postId;
     private String title;
     private String content;
-    private String typeOfPost;
-    private short upvote;
-    private short downvote;
-    private short totalComments;
-    private boolean isNsfw;
-    private LocalDate date;
+    private String postType;
+    private short upvoteCount;
+    private short downvoteCount;
+    private short commentCount;
+    private boolean nsfwFlag;
+    private LocalDate updatedAt;
+    private boolean updateFlag;
     private UserDto user;
 }

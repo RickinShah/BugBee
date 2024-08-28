@@ -18,9 +18,10 @@ public class UserRouter {
     @Bean
     public RouterFunction<ServerResponse> userRouting() {
         return RouterFunctions.route()
-                .GET("/users/get", handler::getUser)
-                .PUT("/users/password/update", handler::updatePassword)
+                .GET("/users/{username}", handler::userProfile)
+                .PATCH("/users/password", handler::updatePassword)
                 .DELETE("/users/delete", handler::deleteUser)
+                .PATCH("/users/settings", handler::updateProfile)
                 .build();
     }
 }

@@ -10,15 +10,13 @@ import org.springframework.data.relational.core.mapping.Table;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table("bugbee.post_votes")
-public class PostVote {
+@Table("bugbee.comment_user_vote")
+public class CommentUserVote {
     @Id
-    @Column("post_vote_id")
-    private long postVoteId;
-    @Column("post_id")
-    private long postId;
-    @Column("user_id")
-    private long userId;
-    @Column("upvote")
-    private boolean upvote;
+    @Column("vote_pid")
+    private long voteId;
+    private Comment comment;
+    private User user;
+    @Column("vote_status")
+    private boolean voteStatus;
 }
