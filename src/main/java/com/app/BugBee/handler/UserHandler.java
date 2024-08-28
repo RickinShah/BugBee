@@ -4,6 +4,7 @@ import com.app.BugBee.dto.AuthRequest;
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.dto.UserDto;
 import com.app.BugBee.entity.User;
+import com.app.BugBee.enums.ROLES;
 import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
@@ -47,7 +48,11 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> signUp(ServerRequest request) {
-        Mono<User> userMono = request.bodyToMono(User.class);
+        Mono<User> userMono = request.bodyToMono(User.class)
+                .doOnNext(user -> {
+                    user.setRoles(ROLES.ROLE_USER.name());
+                    user.setPassword(passwordEncoder.encode(user.getPassword()));
+                });
         return userMono
                 .doOnNext(user -> log.info(user.toString()))
                 .flatMap(user -> checkIfUsernameOrEmailAlreadyExists(user)
@@ -56,9 +61,11 @@ public class UserHandler {
                                         booleanAndMessage.isSuccess() ?
                                         ServerResponse.badRequest().body(
                                                 BodyInserters.fromValue(booleanAndMessage)) :
-                                        encodePasswordAndSave(user)
-                                                .flatMap(boolAndMessage -> ServerResponse.ok()
-                                                                .body(BodyInserters.fromValue(boolAndMessage)))
+                                                repository.saveUser(user)
+                                                .flatMap(userNew -> ServerResponse.ok()
+                                                                .body(BodyInserters.fromValue(
+                                                                        new BooleanAndMessage(true, "Sign up successful")
+                                                                )))
                                 )
                 );
     }
@@ -150,9 +157,4 @@ public class UserHandler {
                 );
     }
 
-    private Mono<BooleanAndMessage> encodePasswordAndSave(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return repository.saveUser(user)
-                .thenReturn(new BooleanAndMessage(true, "Registered Successfully!"));
-    }
 }
