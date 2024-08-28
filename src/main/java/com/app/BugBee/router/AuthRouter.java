@@ -24,9 +24,10 @@ public class AuthRouter {
     public RouterFunction<ServerResponse> authRouting() {
         return RouterFunctions.route()
                 .POST("/auth/signup", userHandler::signUp)
-                .POST("/auth/login", userHandler::getToken)
+                .POST("/auth/login", userHandler::loginAndGetToken)
                 .POST("/auth/otp/send", otpHandler::sendOtp)
-                .POST("/auth/otp/validate", otpHandler::validateOtp)
+                .POST("/auth/otp/{username}", otpHandler::validateOtp)
+//                .PATCH("/auth/otp/{username}", userHandler::updatePassword)
                 .build();
     }
 }
