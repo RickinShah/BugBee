@@ -15,8 +15,10 @@ public class CommentUserVote {
     @Id
     @Column("vote_pid")
     private long voteId;
-    private Comment comment;
-    private User user;
+    @Column("comment_id")
+    private long commentId;
+    @Column("user_id")
+    private long userId;
     @Column("vote_status")
     private boolean voteStatus;
 }

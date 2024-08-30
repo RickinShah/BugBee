@@ -15,8 +15,10 @@ public class ReplyUserVote {
     @Id
     @Column("vote_pid")
     private long voteId;
-    private Reply reply;
-    private User user;
+    @Column("user_id")
+    private long userId;
+    @Column("reply_id")
+    private long replyId;
     @Column("vote_status")
     private boolean voteStatus;
 }
