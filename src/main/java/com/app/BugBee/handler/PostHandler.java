@@ -56,17 +56,6 @@ public class PostHandler {
                 );
     }
 
-//    public Mono<ServerResponse> getAllPosts(ServerRequest request) {
-//        return ServerResponse.ok().body(BodyInserters.fromPublisher(
-//                repository.findAll()
-//                        .map(DtoEntityMapper::postToDto)
-//                        .flatMap(post ->
-//                                userRepository.findById(post.getUser().getUserId())
-//                                        .map(user -> post)
-//                        ), PostDto.class
-//        ));
-//    }
-
     public Mono<ServerResponse> updatePost(ServerRequest request) {
         final long postId = Long.parseLong(request.pathVariable("postId"));
         Mono<PostDto> postDtoMono = request.bodyToMono(PostDto.class)
@@ -90,13 +79,8 @@ public class PostHandler {
         final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
         final long postId = Long.parseLong(request.pathVariable("postId"));
 
-        return repository.deleteByPostId(postId)
-                .flatMap(post -> ServerResponse.ok().body(BodyInserters.fromValue(
-                        new BooleanAndMessage(true, "Post deleted successfully!")
-                )))
-                .switchIfEmpty(ServerResponse.badRequest().body(BodyInserters.fromValue(
-                        new BooleanAndMessage(false, "Something went wrong!")
-                )));
+        return repository.deleteByPostIdAndUserId(postId, userId)
+                .then(ServerResponse.noContent().build());
     }
 
     public Mono<ServerResponse> votePost(ServerRequest request) {
@@ -106,8 +90,8 @@ public class PostHandler {
                 .doOnNext(postUserVote -> {
                     postUserVote.setPostId(postId);
                     postUserVote.setUserId(userId);
-                })
-                .doOnNext(postUserVote -> log.info("{}",postUserVote.isVoteStatus()));
+                });
+//                .doOnNext(postUserVote -> log.info("{}",postUserVote.isVoteStatus()));
 
         return postUserVoteMono
                 .flatMap(postUserVote -> postVoteRepository.findByUserIdAndPostId(
@@ -120,9 +104,10 @@ public class PostHandler {
                         .flatMap(vote -> upvoteOrDownvoteIfAlreadyExists(vote, postUserVote))
                         .switchIfEmpty(upvoteOrDownvoteIfNotExists(postUserVote))
                 )
-                .flatMap(booleanAndMessage -> ServerResponse.ok().body(
-                        BodyInserters.fromValue(booleanAndMessage)
-                ));
+                .flatMap(booleanAndMessage -> booleanAndMessage.isSuccess() ?
+                        ServerResponse.ok().build() :
+                        ServerResponse.badRequest().body(BodyInserters.fromValue(booleanAndMessage))
+                );
 
     }
 
@@ -136,7 +121,7 @@ public class PostHandler {
                         .map(DtoEntityMapper::postToDto)
                         .flatMap(postDto ->
                                 postVoteRepository.findByUserIdAndPostId(
-                                                postDto.getUser().getUserId(), postDto.getPostId()
+                                                userId, postDto.getPostId()
                                         )
                                         .doOnNext(postUserVote -> {
                                             postDto.setVoteStatus(postUserVote.isVoteStatus());
