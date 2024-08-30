@@ -20,8 +20,8 @@ services:
       - SSL_PASSWORD=${SSL_PASSWORD}
       - SSL_CERTIFICATE_LOCATION=${SSL_CERTIFICATE_LOCATION}
       - SECRET_KEY=${SECRET_KEY}
-    #    ports:
-    #      - "8443:8443"
+#    ports:
+#      - "8443:8443"
     volumes:
       - ${SSL_DIR}:/app/ssl
 
