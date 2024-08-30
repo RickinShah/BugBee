@@ -13,6 +13,6 @@ public interface OtpRepository extends R2dbcRepository<Otp, Long> {
 
     @SuppressWarnings("NullableProblems")
     @Modifying
-    @Query("INSERT INTO bugbee.otps(user_pid, otp, expiration_time) VALUES (:#{#otp.userId}, :#{#otp.otp}, :#{#otp.expirationTime}) ON CONFLICT (user_id) DO UPDATE SET otp=:#{#otp.otp}, expiration_time=:#{#otp.expirationTime}")
+    @Query("INSERT INTO bugbee.otps(user_pid, otp, expiration_time) VALUES (:#{#otp.userId}, :#{#otp.otp}, :#{#otp.expirationTime}) ON CONFLICT (user_pid) DO UPDATE SET otp=:#{#otp.otp}, expiration_time=:#{#otp.expirationTime}")
     Mono<Long> save(final Otp otp);
 }

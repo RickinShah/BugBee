@@ -86,4 +86,15 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
                 .map(postMapper::apply)
                 .first();
     }
+
+    @Override
+    public Mono<Long> deleteByPostIdAndUserId(Long postId, Long userId) {
+        final String query = "DELETE FROM bugbee.posts WHERE post_pid = :postId AND user_id = :userId";
+
+        return client.sql(query)
+                .bind("userId", userId)
+                .bind("postId", postId)
+                .fetch()
+                .rowsUpdated();
+    }
 }

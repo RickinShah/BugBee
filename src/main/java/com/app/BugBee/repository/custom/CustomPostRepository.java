@@ -11,4 +11,6 @@ public interface CustomPostRepository {
     Mono<Long> savePost(Post post);
 
     Mono<Post> findByPostId(Long postId);
+
+    Mono<Long> deleteByPostIdAndUserId(Long postId, Long userId);
 }
