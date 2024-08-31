@@ -67,7 +67,6 @@ public class OtpHandler {
     }
 
 
-
     // Internal Methods Below
 
     private Mono<BooleanAndMessage> createOtpAndSendOtpMail(User user) {

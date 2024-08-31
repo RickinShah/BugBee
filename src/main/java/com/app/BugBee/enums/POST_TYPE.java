@@ -11,5 +11,8 @@ public enum POST_TYPE {
     DOCUMENT(System.getenv("STORAGE") + "/posts/documents");
 
     private final String value;
-    POST_TYPE(String value) {this.value = value;}
+
+    POST_TYPE(String value) {
+        this.value = value;
+    }
 }

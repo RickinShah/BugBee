@@ -17,15 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsWebFilter;
-import org.springframework.web.cors.reactive.DefaultCorsProcessor;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.EnableWebFlux;
-import org.springframework.web.reactive.config.WebFluxConfigurer;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 
 import java.util.Arrays;
 
@@ -61,10 +55,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth ->
-                                auth.pathMatchers("/auth/**").permitAll()
-                                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                        .pathMatchers("/users/**", "/posts/**").authenticated()
-                                        .pathMatchers("/admin/**").hasRole("ADMIN")
+                        auth.pathMatchers("/auth/**").permitAll()
+                                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .pathMatchers("/users/**", "/posts/**").authenticated()
+                                .pathMatchers("/admin/**").hasRole("ADMIN")
                 )
                 .addFilterAt(new JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)
                 .formLogin(Customizer.withDefaults()).build();

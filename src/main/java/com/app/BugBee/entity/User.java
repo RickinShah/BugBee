@@ -23,6 +23,7 @@ public class User {
     private String name;
     private String password;
     private String roles;
+    private String bio;
     @Column("show_nsfw")
     private boolean showNsfw = false;
     private String profile = PROFILES.P1.name();

@@ -20,6 +20,7 @@ public class UserMapper implements BiFunction<Row, Object, User> {
                 .roles(row.get("roles", String.class))
                 .showNsfw(row.get("show_nsfw", Boolean.class))
                 .profile(row.get("profile", String.class))
+                .bio(row.get("bio", String.class))
                 .build();
     }
 }

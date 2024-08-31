@@ -17,4 +17,5 @@ public class UserDto {
     private boolean showNsfw;
     private String profile;
     private String profilePath;
+    private String bio;
 }

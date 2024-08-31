@@ -24,7 +24,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.io.*;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
@@ -218,7 +218,7 @@ public class PostHandler {
 
     private Mono<Void> saveFileToPath(String path, FilePart resource, long postId) {
         String fileType = resource.filename().substring(resource.filename().lastIndexOf('.'));
-        if(!new File(path).exists()) {
+        if (!new File(path).exists()) {
             new File(path).mkdirs();
         }
         Path filePath = Path.of(new File(path + "/" + postId + fileType).getAbsolutePath());

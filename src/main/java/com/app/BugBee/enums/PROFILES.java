@@ -10,5 +10,8 @@ public enum PROFILES {
     P4(System.getenv("STORAGE") + "/profiles/p4.jpg");
 
     private final String value;
-    PROFILES(String value) {this.value = value;}
+
+    PROFILES(String value) {
+        this.value = value;
+    }
 }

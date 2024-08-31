@@ -3,6 +3,9 @@ package com.app.BugBee.repository.custom.impl;
 import com.app.BugBee.entity.User;
 import com.app.BugBee.mapper.UserMapper;
 import com.app.BugBee.repository.custom.CustomUserRepository;
+import io.r2dbc.spi.Parameter;
+import io.r2dbc.spi.Parameters;
+import io.r2dbc.spi.R2dbcType;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -55,7 +58,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     public Mono<User> saveUser(User user) {
         if (user.getUserId() != 0) {
             final String query = "UPDATE bugbee.users SET username = :username, email = :email, name = :name," +
-                    " password = :password, roles = :roles, show_nsfw = :showNsfw, profile = :profile" +
+                    " password = :password, roles = :roles, show_nsfw = :showNsfw, profile = :profile, bio = :bio" +
                     " WHERE user_pid = :userId RETURNING *";
 
             return client.sql(query)
@@ -66,11 +69,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .bind("roles", user.getRoles())
                     .bind("showNsfw", user.isShowNsfw())
                     .bind("profile", user.getProfile())
+                    .bind("bio", Parameters.in(R2dbcType.VARCHAR, user.getBio()))
                     .map(userMapper::apply)
                     .first();
         }
-        final String query = "INSERT INTO bugbee.users(username, email, name, password, roles, show_nsfw, profile)" +
-                " VALUES (:username, :email, :name, :password, :roles, :showNsfw, :profile) RETURNING *";
+        final String query = "INSERT INTO bugbee.users(username, email, name, password, roles, show_nsfw, profile, bio)" +
+                " VALUES (:username, :email, :name, :password, :roles, :showNsfw, :profile, :bio) RETURNING *";
 
         return client.sql(query)
                 .bind("username", user.getUsername())
@@ -80,6 +84,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .bind("roles", user.getRoles())
                 .bind("showNsfw", user.isShowNsfw())
                 .bind("profile", user.getProfile())
+                .bind("bio", Parameters.in(R2dbcType.VARCHAR, user.getBio()))
                 .map(userMapper::apply)
                 .first();
     }

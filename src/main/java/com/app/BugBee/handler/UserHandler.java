@@ -135,6 +135,7 @@ public class UserHandler {
                             userNew.setUsername(user.getUsername());
                             userNew.setName(user.getName());
                             userNew.setShowNsfw(user.isShowNsfw());
+                            userNew.setBio(user.getBio());
                         })
                 )
                 .flatMap(repository::saveUser)
