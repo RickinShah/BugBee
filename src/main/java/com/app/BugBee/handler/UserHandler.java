@@ -4,6 +4,7 @@ import com.app.BugBee.dto.AuthRequest;
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.dto.UserDto;
 import com.app.BugBee.entity.User;
+import com.app.BugBee.enums.PROFILES;
 import com.app.BugBee.enums.ROLES;
 import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.UserRepository;
@@ -50,6 +51,7 @@ public class UserHandler {
     public Mono<ServerResponse> signUp(ServerRequest request) {
         Mono<User> userMono = request.bodyToMono(User.class)
                 .doOnNext(user -> {
+                    user.setProfile(PROFILES.P1.name());
                     user.setRoles(ROLES.ROLE_USER.name());
                     user.setPassword(passwordEncoder.encode(user.getPassword()));
                 });

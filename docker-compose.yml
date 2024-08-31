@@ -20,10 +20,13 @@ services:
       - SSL_PASSWORD=${SSL_PASSWORD}
       - SSL_CERTIFICATE_LOCATION=${SSL_CERTIFICATE_LOCATION}
       - SECRET_KEY=${SECRET_KEY}
+      - STORAGE=${STORAGE}
+      - CROSS_ORIGIN_URL=${CROSS_ORIGIN_URL}
 #    ports:
 #      - "8443:8443"
     volumes:
       - ${SSL_DIR}:/app/ssl
+      - ${STORAGE}:/bugbee
 
   db:
     image: postgres:16

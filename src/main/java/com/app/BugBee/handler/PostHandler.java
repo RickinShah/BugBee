@@ -2,23 +2,31 @@ package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.dto.PostDto;
-import com.app.BugBee.dto.UserInfoDto;
 import com.app.BugBee.entity.PostUserVote;
 import com.app.BugBee.enums.POST_TYPE;
 import com.app.BugBee.mapper.DtoEntityMapper;
+import com.app.BugBee.mapper.PostMapper;
 import com.app.BugBee.repository.PostRepository;
 import com.app.BugBee.repository.PostVoteRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.json.JsonParserFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 
 @Service
@@ -30,30 +38,29 @@ public class PostHandler {
 
     private final PostVoteRepository postVoteRepository;
 
-    public PostHandler(PostRepository repository, JwtTokenProvider tokenProvider, PostVoteRepository postVoteRepository) {
+    public PostHandler(PostRepository repository, JwtTokenProvider tokenProvider, PostVoteRepository postVoteRepository, PostMapper postMapper) {
         this.repository = repository;
         this.tokenProvider = tokenProvider;
         this.postVoteRepository = postVoteRepository;
     }
 
     public Mono<ServerResponse> insertPost(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
-        final Mono<PostDto> postDtoMono = request.bodyToMono(PostDto.class).doOnNext(post -> {
-            post.setPostType(POST_TYPE.QUESTION.name());
-            post.setUpdatedAt(LocalDate.now());
-            post.setUser(UserInfoDto.builder().userId(userId).build());
-//            log.info(post.getUser().toString());
-        });
-        return postDtoMono
-                .map(DtoEntityMapper::dtoToPost)
-//                .doOnNext(e -> log.info(e.getUser().toString()))
-                .flatMap(repository::savePost)
-                .flatMap(e -> ServerResponse.ok().body(BodyInserters
-                        .fromValue(new BooleanAndMessage(true, "Query inserted successfully!")))
-                )
-                .switchIfEmpty(ServerResponse.badRequest().body(BodyInserters
-                        .fromValue(new BooleanAndMessage(false, "Something went wrong!")))
-                );
+//        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = 3446799883267216476L;
+        return request.body(BodyExtractors.toMultipartData())
+                .map(MultiValueMap::toSingleValueMap)
+                .flatMap(partMap ->
+                        Mono.just((FormFieldPart) partMap.get("post"))
+                                .map(postForm -> new PostDto(JsonParserFactory.getJsonParser().parseMap(postForm.value()), userId))
+                                .map(DtoEntityMapper::dtoToPost)
+                                .flatMap(repository::savePost)
+                                .flatMap(post -> {
+                                            FilePart resource = (FilePart) partMap.get("resource");
+                                            return saveFileToPath(
+                                                    getPostPath(resource.filename()), resource, post.getPostId());
+                                        }
+                                ))
+                .then(ServerResponse.ok().body(BodyInserters.fromValue("done")));
     }
 
     public Mono<ServerResponse> updatePost(ServerRequest request) {
@@ -66,13 +73,12 @@ public class PostHandler {
         return postDtoMono
                 .map(DtoEntityMapper::dtoToPost)
                 .flatMap(repository::savePost)
-                .flatMap(e -> e == 0 ?
-                        ServerResponse.ok().body(BodyInserters.fromValue(
-                                new BooleanAndMessage(false, "Nothing to delete!")
-                        )) :
-                        ServerResponse.ok().body(BodyInserters.fromValue(
-                                new BooleanAndMessage(true, "Post updated successfully!")
-                        )));
+                .flatMap(post -> ServerResponse.ok().body(BodyInserters.fromValue(
+                        new BooleanAndMessage(false, "Nothing to delete!")
+                )))
+                .switchIfEmpty(ServerResponse.ok().body(BodyInserters.fromValue(
+                        new BooleanAndMessage(true, "Post updated successfully!")
+                )));
     }
 
     public Mono<ServerResponse> deletePost(ServerRequest request) {
@@ -95,14 +101,14 @@ public class PostHandler {
 
         return postUserVoteMono
                 .flatMap(postUserVote -> postVoteRepository.findByUserIdAndPostId(
-                        postUserVote.getUserId(), postUserVote.getPostId()
+                                        postUserVote.getUserId(), postUserVote.getPostId()
                                 )
-                        .defaultIfEmpty(new PostUserVote())
+                                .defaultIfEmpty(new PostUserVote())
 //                        .doOnNext(vote -> log.info(vote.toString()))
-                        .filter(vote -> vote.getPostId() != 0)
+                                .filter(vote -> vote.getPostId() != 0)
 //                        .doOnNext(vote -> log.info(vote.toString()))
-                        .flatMap(vote -> upvoteOrDownvoteIfAlreadyExists(vote, postUserVote))
-                        .switchIfEmpty(upvoteOrDownvoteIfNotExists(postUserVote))
+                                .flatMap(vote -> upvoteOrDownvoteIfAlreadyExists(vote, postUserVote))
+                                .switchIfEmpty(upvoteOrDownvoteIfNotExists(postUserVote))
                 )
                 .flatMap(booleanAndMessage -> booleanAndMessage.isSuccess() ?
                         ServerResponse.ok().build() :
@@ -197,4 +203,28 @@ public class PostHandler {
 
     }
 
+    private String getPostPath(String postName) {
+        postName = postName.toLowerCase();
+        if (postName.matches(".*\\.(png|jpg)$"))
+            return POST_TYPE.IMAGE.getValue();
+        else if (postName.matches(".*\\.(mp4|webm)$"))
+            return POST_TYPE.VIDEO.getValue();
+        else if (postName.matches(".*\\.(mp3|wav|ogg)$"))
+            return POST_TYPE.AUDIO.getValue();
+        else if (postName.matches(".*\\.(pdf)$"))
+            return POST_TYPE.IMAGE.getValue();
+        return POST_TYPE.QUESTION.getValue();
+    }
+
+    private Mono<Void> saveFileToPath(String path, FilePart resource, long postId) {
+        String fileType = resource.filename().substring(resource.filename().lastIndexOf('.'));
+        if(!new File(path).exists()) {
+            new File(path).mkdirs();
+        }
+        Path filePath = Path.of(new File(path + "/" + postId + fileType).getAbsolutePath());
+        return DataBufferUtils.write(resource.content(), filePath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+//                .doOnSuccess(e -> log.info("File saved successfully to {}", filePath.toAbsolutePath()))
+//                .doOnError(e -> log.error("Failed to save file", e))
+                .then();
+    }
 }
