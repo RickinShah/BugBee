@@ -3,18 +3,22 @@ CREATE SCHEMA IF NOT EXISTS bugbee;
 CREATE SEQUENCE IF NOT EXISTS bugbee.table_id_seq START WITH 1 INCREMENT BY 1;
 
 -- NEEDED TO ONLY RUN ONCE
-CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS '
-DECLARE
-    our_epoch bigint := 1314220021721;
-    seq_id bigint;
-    now_millis bigint;
-    shard_id int := 5;
-BEGIN
-    SELECT MOD(nextval(''bugbee.table_id_seq''), 1024) INTO seq_id;  SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000) INTO now_millis;
-    result := (now_millis - our_epoch) << 23;
-    result := result | (shard_id <<10);
-    result := result | (seq_id);
-END;
+CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS
+'
+    DECLARE
+        our_epoch  bigint := 1314220021721;
+        seq_id     bigint;
+        now_millis bigint;
+        shard_id   int    := 5;
+    BEGIN
+        SELECT MOD(nextval(''bugbee.table_id_seq''), 1024)
+        INTO seq_id;
+        SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000)
+        INTO now_millis;
+        result := (now_millis - our_epoch) << 23;
+        result := result | (shard_id << 10);
+        result := result | (seq_id);
+    END;
 ' LANGUAGE PLPGSQL;
 
 
@@ -36,37 +40,39 @@ END;
 
 -- Don't change the sequence of these tables
 -- Uncomment below if you want functionality like DROP-CREATE
--- DROP TABLE IF EXISTS bugbee.reply_user_vote;
--- DROP TABLE IF EXISTS bugbee.comment_user_vote;
--- DROP TABLE IF EXISTS bugbee.post_user_vote;
--- DROP TABLE IF EXISTS bugbee.replies;
--- DROP TABLE IF EXISTS bugbee.comments;
--- DROP TABLE IF EXISTS bugbee.posts;
--- DROP TABLE IF EXISTS bugbee.otps;
--- DROP TABLE IF EXISTS bugbee.users;
+DROP TABLE IF EXISTS bugbee.reply_user_vote;
+DROP TABLE IF EXISTS bugbee.comment_user_vote;
+DROP TABLE IF EXISTS bugbee.post_user_vote;
+DROP TABLE IF EXISTS bugbee.replies;
+DROP TABLE IF EXISTS bugbee.comments;
+DROP TABLE IF EXISTS bugbee.posts;
+DROP TABLE IF EXISTS bugbee.otps;
+DROP TABLE IF EXISTS bugbee.users;
 
 CREATE TABLE IF NOT EXISTS bugbee.users
 (
-    user_pid   BIGINT                       DEFAULT bugbee.next_id(),
-    username   VARCHAR(50) UNIQUE  NOT NULL,
-    email      VARCHAR(255) UNIQUE NOT NULL,
-    name       VARCHAR(50)         NOT NULL,
-    password   VARCHAR(64)         NOT NULL,
-    roles      VARCHAR(15)         NOT NULL DEFAULT 'ROLE_USER',
-    show_nsfw  BOOLEAN             NOT NULL DEFAULT FALSE,
-    profile    VARCHAR(15)         NOT NULL,
+    user_pid  BIGINT                       DEFAULT bugbee.next_id(),
+    username  VARCHAR(50) UNIQUE  NOT NULL,
+    email     VARCHAR(255) UNIQUE NOT NULL,
+    name      VARCHAR(50),
+    password  VARCHAR(64)         NOT NULL,
+    roles     VARCHAR(15)         NOT NULL DEFAULT 'ROLE_USER',
+    show_nsfw BOOLEAN             NOT NULL DEFAULT FALSE,
+    profile   VARCHAR(15)         NOT NULL DEFAULT 'P1',
+    bio       VARCHAR(100),
     PRIMARY KEY (user_pid)
 );
 
 -- Adding a user as ROLE_ADMIN
 -- Username: admin
 -- Password: admin
--- INSERT INTO bugbee.users(email, username, name, password, roles, profile) VALUES (
---     'rickinshah.21.cs@iite.indusuni.ac.in',
---     'admin',
---     'Admin',
---     '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
---     'ROLE_ADMIN', 'P1');
+INSERT INTO bugbee.users(email, username, name, password, roles, profile) VALUES (
+    'rickinshah.21.cs@iite.indusuni.ac.in',
+    'admin',
+    'Admin',
+    '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
+    'ROLE_ADMIN',
+    'P1');
 
 CREATE TABLE IF NOT EXISTS bugbee.otps
 (
