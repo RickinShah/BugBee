@@ -19,8 +19,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
     @Override
     public Mono<User> findByUsername(String username) {
-        final String query = "SELECT * FROM bugbee.users u LEFT OUTER JOIN bugbee.profiles p" +
-                " ON u.profile_id = p.profile_pid WHERE u.username = :username";
+        final String query = "SELECT * FROM bugbee.users u" +
+                " WHERE u.username = :username";
 
         return client.sql(query)
                 .bind("username", username)
@@ -30,8 +30,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
     @Override
     public Mono<User> findByUsernameOrEmail(String username, String email) {
-        final String query = "SELECT * FROM bugbee.users u LEFT OUTER JOIN bugbee.profiles p" +
-                " ON u.profile_id = p.profile_pid WHERE u.username = :username OR u.email = :email";
+        final String query = "SELECT * FROM bugbee.users u" +
+                " WHERE u.username = :username OR u.email = :email";
 
         return client.sql(query)
                 .bind("username", username)
@@ -42,8 +42,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
     @Override
     public Mono<User> findByUserId(long userId) {
-        final String query = "SELECT * FROM bugbee.users u LEFT OUTER JOIN bugbee.profiles p" +
-                " ON u.profile_id = p.profile_pid WHERE u.user_pid = :userId";
+        final String query = "SELECT * FROM bugbee.users u" +
+                " WHERE u.user_pid = :userId";
 
         return client.sql(query)
                 .bind("userId", userId)
@@ -54,11 +54,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     @Override
     public Mono<User> saveUser(User user) {
         if (user.getUserId() != 0) {
-            final String query = "WITH updated AS (UPDATE bugbee.users SET username = :username, email = :email, name = :name," +
-                    " password = :password, roles = :roles, show_nsfw = :showNsfw, profile_id = :profileId" +
-                    " WHERE user_pid = :userId RETURNING *)" +
-                    "SELECT * FROM updated u LEFT OUTER JOIN bugbee.profiles p" +
-                    " ON u.profile_id = p.profile_pid";
+            final String query = "UPDATE bugbee.users SET username = :username, email = :email, name = :name," +
+                    " password = :password, roles = :roles, show_nsfw = :showNsfw, profile = :profile" +
+                    " WHERE user_pid = :userId RETURNING *";
 
             return client.sql(query)
                     .bind("username", user.getUsername())
@@ -67,14 +65,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .bind("password", user.getPassword())
                     .bind("roles", user.getRoles())
                     .bind("showNsfw", user.isShowNsfw())
-                    .bind("profileId", user.getProfile().getProfileId())
+                    .bind("profile", user.getProfile())
                     .map(userMapper::apply)
                     .first();
         }
-        final String query = "WITH inserted AS (INSERT INTO bugbee.users(username, email, name, password, roles, show_nsfw, profile_id)" +
-                " VALUES (:username, :email, :name, :password, :roles, :showNsfw, :profileId) RETURNING *)" +
-                "SELECT * FROM inserted u LEFT OUTER JOIN bugbee.profiles p" +
-                " ON u.profile_id = p.profile_pid";
+        final String query = "INSERT INTO bugbee.users(username, email, name, password, roles, show_nsfw, profile)" +
+                " VALUES (:username, :email, :name, :password, :roles, :showNsfw, :profile) RETURNING *";
 
         return client.sql(query)
                 .bind("username", user.getUsername())
@@ -83,14 +79,13 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .bind("password", user.getPassword())
                 .bind("roles", user.getRoles())
                 .bind("showNsfw", user.isShowNsfw())
-                .bind("profileId", user.getProfile().getProfileId())
+                .bind("profile", user.getProfile())
                 .map(userMapper::apply)
                 .first();
     }
 
     public Flux<User> findAll() {
-        final String query = "SELECT * FROM bugbee.users u LEFT OUTER JOIN bugbee.profiles p" +
-                " ON u.profile_id = p.profile_pid";
+        final String query = "SELECT * FROM bugbee.users";
 
         return client.sql(query)
                 .map(userMapper::apply)

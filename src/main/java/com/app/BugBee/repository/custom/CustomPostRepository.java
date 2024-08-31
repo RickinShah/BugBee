@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 public interface CustomPostRepository {
     Flux<Post> findAll(Pageable pageable);
 
-    Mono<Long> savePost(Post post);
+    Mono<Post> savePost(Post post);
 
     Mono<Post> findByPostId(Long postId);
 

@@ -44,17 +44,6 @@ END;
 -- DROP TABLE IF EXISTS bugbee.posts;
 -- DROP TABLE IF EXISTS bugbee.otps;
 -- DROP TABLE IF EXISTS bugbee.users;
--- DROP TABLE IF EXISTS bugbee.profiles;
-
-
-CREATE TABLE IF NOT EXISTS bugbee.profiles
-(
-    profile_pid       SMALLSERIAL,
-    profile_file_path VARCHAR(50) NOT NULL,
-    PRIMARY KEY (profile_pid)
-);
-
-INSERT INTO bugbee.profiles(profile_file_path) VALUES ('profile1.jpg');
 
 CREATE TABLE IF NOT EXISTS bugbee.users
 (
@@ -65,24 +54,19 @@ CREATE TABLE IF NOT EXISTS bugbee.users
     password   VARCHAR(64)         NOT NULL,
     roles      VARCHAR(15)         NOT NULL DEFAULT 'ROLE_USER',
     show_nsfw  BOOLEAN             NOT NULL DEFAULT FALSE,
-    profile_id BIGINT              NOT NULL DEFAULT 1,
-    PRIMARY KEY (user_pid),
-    CONSTRAINT fk_users_profiles
-        FOREIGN KEY (profile_id)
-            REFERENCES bugbee.profiles (profile_pid)
-            ON DELETE SET DEFAULT
-
+    profile    VARCHAR(15)         NOT NULL,
+    PRIMARY KEY (user_pid)
 );
 
 -- Adding a user as ROLE_ADMIN
 -- Username: admin
 -- Password: admin
-INSERT INTO bugbee.users(email, username, name, password, roles) VALUES (
-    'rickinshah.21.cs@iite.indusuni.ac.in',
-    'admin',
-    'Admin',
-    '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
-    'ROLE_ADMIN');
+-- INSERT INTO bugbee.users(email, username, name, password, roles, profile) VALUES (
+--     'rickinshah.21.cs@iite.indusuni.ac.in',
+--     'admin',
+--     'Admin',
+--     '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
+--     'ROLE_ADMIN', 'P1');
 
 CREATE TABLE IF NOT EXISTS bugbee.otps
 (

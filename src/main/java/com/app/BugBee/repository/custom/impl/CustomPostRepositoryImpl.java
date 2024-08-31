@@ -23,7 +23,6 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
     public Flux<Post> findAll(Pageable pageable) {
         String query = "SELECT * FROM bugbee.posts p" +
                 " LEFT JOIN bugbee.users u ON p.user_id = u.user_pid" +
-                " LEFT JOIN bugbee.profiles p2 on p2.profile_pid = u.profile_id" +
                 " ORDER BY p.post_pid DESC OFFSET :lastId LIMIT :size";
 
         return client.sql(query)
@@ -34,29 +33,31 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
     }
 
     @Override
-    public Mono<Long> savePost(Post post) {
+    public Mono<Post> savePost(Post post) {
 //        log.info(post.toString());
 //        log.info("savePost called");
         if (post.getPostId() != 0) {
 //            log.info("update");
-            String query = "UPDATE bugbee.posts SET" +
+            String query = "WITH updated AS (UPDATE bugbee.posts SET" +
                     " content = :content, title = :title, updated_at = :updatedAt, update_flag = true" +
-                    " WHERE post_pid = :postId";
+                    " WHERE post_pid = :postId RETURNING *)" +
+                    " SELECT * FROM updated i LEFT JOIN bugbee.users u ON i.user_id = u.user_pid";
 
             return client.sql(query)
                     .bind("content", post.getContent())
                     .bind("title", post.getTitle())
                     .bind("postId", post.getPostId())
                     .bind("updatedAt", post.getUpdatedAt())
-                    .fetch()
-                    .rowsUpdated();
+                    .map(postMapper::apply)
+                    .first();
 
         }
         String query =
-                "INSERT INTO bugbee.posts(title, content, post_type, upvote_count, downvote_count," +
+                "WITH inserted AS (INSERT INTO bugbee.posts(title, content, post_type, upvote_count, downvote_count," +
                         "comment_count, nsfw_flag, updated_at, update_flag, user_id)" +
                         " VALUES (:title, :content, :postType, :upvoteCount, :downvoteCount," +
-                        ":commentCount, :nsfwFlag, :updatedAt, false, :userId)";
+                        ":commentCount, :nsfwFlag, :updatedAt, false, :userId) RETURNING *)" +
+                        " SELECT * FROM inserted i LEFT JOIN bugbee.users u ON i.user_id = u.user_pid";
 
         return client.sql(query)
                 .bind("title", post.getTitle())
@@ -68,8 +69,8 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
                 .bind("nsfwFlag", post.isNsfwFlag())
                 .bind("updatedAt", post.getUpdatedAt())
                 .bind("userId", post.getUser().getUserId())
-                .fetch()
-                .rowsUpdated();
+                .map(postMapper::apply)
+                .first();
 //        log.info("savePost completed");
 
     }
@@ -78,7 +79,6 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
     public Mono<Post> findByPostId(Long postId) {
         final String query = "SELECT * FROM bugbee.posts p" +
                 " LEFT OUTER JOIN bugbee.users u ON p.user_id = u.user_pid" +
-                " LEFT OUTER JOIN bugbee.profiles p2 ON p2.profile_pid = u.profile_id" +
                 " WHERE p.post_pid = :postId";
 
         return client.sql(query)

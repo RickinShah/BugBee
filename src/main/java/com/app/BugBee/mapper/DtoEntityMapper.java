@@ -4,8 +4,8 @@ import com.app.BugBee.dto.PostDto;
 import com.app.BugBee.dto.UserDto;
 import com.app.BugBee.dto.UserInfoDto;
 import com.app.BugBee.entity.Post;
-import com.app.BugBee.entity.Profile;
 import com.app.BugBee.entity.User;
+import com.app.BugBee.enums.PROFILES;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 
@@ -14,21 +14,14 @@ public class DtoEntityMapper {
     public static UserDto userToDto(User user) {
         UserDto userDto = new UserDto();
         BeanUtils.copyProperties(user, userDto);
-        if (user.getProfile() != null) {
-            userDto.setProfile(new Profile());
-            BeanUtils.copyProperties(user.getProfile(), userDto.getProfile());
-        }
+        userDto.setProfilePath(PROFILES.valueOf(user.getProfile()).getValue());
         return userDto;
     }
 
     public static User dtoToUser(UserDto userDto) {
         User user = new User();
         BeanUtils.copyProperties(userDto, user);
-        if (userDto.getProfile() != null) {
-            user.setProfile(new Profile());
-            ;
-            BeanUtils.copyProperties(userDto.getProfile(), user);
-        }
+
         return user;
     }
 
@@ -42,13 +35,7 @@ public class DtoEntityMapper {
 
         postDto.setUser(new UserInfoDto());
         BeanUtils.copyProperties(post.getUser(), postDto.getUser());
-
-        if (post.getUser().getProfile() == null) {
-            return postDto;
-        }
-
-        postDto.getUser().setProfile(new Profile());
-        BeanUtils.copyProperties(post.getUser().getProfile(), postDto.getUser().getProfile());
+        postDto.getUser().setProfilePath(PROFILES.valueOf(post.getUser().getProfile()).getValue());
 
         return postDto;
     }
@@ -62,13 +49,6 @@ public class DtoEntityMapper {
         }
         post.setUser(new User());
         BeanUtils.copyProperties(postDto.getUser(), post.getUser());
-
-        if (postDto.getUser().getProfile() == null) {
-            return post;
-        }
-
-        post.getUser().setProfile(new Profile());
-        BeanUtils.copyProperties(postDto.getUser().getProfile(), post.getUser().getProfile());
 
         return post;
     }

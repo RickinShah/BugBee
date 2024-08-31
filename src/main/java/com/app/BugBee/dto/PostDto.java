@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -16,13 +17,29 @@ public class PostDto {
     private String title;
     private String content;
     private String postType;
-    private short upvoteCount;
-    private short downvoteCount;
-    private short commentCount;
+    private int upvoteCount;
+    private int downvoteCount;
+    private int commentCount;
     private boolean nsfwFlag;
     private LocalDate updatedAt;
     private boolean updateFlag;
     private UserInfoDto user;
     private boolean voteStatus;
     private boolean votedFlag;
+
+    public PostDto(Map<String, Object> postMap, long userId) {
+        this.postId = Long.parseLong(postMap.getOrDefault("postId", "0").toString());
+        this.title = (String) postMap.getOrDefault("title", null);
+        this.content = (String) postMap.getOrDefault("content", null);
+        this.postType = (String) postMap.getOrDefault("postType", null);
+        this.upvoteCount = Integer.parseInt(postMap.getOrDefault("upvoteCount", "0").toString());
+        this.downvoteCount = Integer.parseInt(postMap.getOrDefault("downvoteCount", "0").toString());
+        this.commentCount = Integer.parseInt(postMap.getOrDefault("commentCount", "0").toString());
+        this.nsfwFlag = Boolean.parseBoolean(postMap.getOrDefault("nsfwFlag", "false").toString());
+        this.updatedAt = LocalDate.now();
+        this.updateFlag = Boolean.parseBoolean(postMap.getOrDefault("updateFlag", "false").toString());
+        this.voteStatus = Boolean.parseBoolean(postMap.getOrDefault("voteStatus", "false").toString());
+        this.votedFlag = Boolean.parseBoolean(postMap.getOrDefault("votedFlag", "false").toString());
+        this.user = new UserInfoDto(userId, null, null);
+    }
 }

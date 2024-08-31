@@ -1,5 +1,6 @@
 package com.app.BugBee.entity;
 
+import com.app.BugBee.enums.PROFILES;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class User {
     private String roles;
     @Column("show_nsfw")
     private boolean showNsfw = false;
-    private Profile profile;
+    private String profile = PROFILES.P1.name();
 
     public User(String email, String password, String roles) {
         this.email = email;

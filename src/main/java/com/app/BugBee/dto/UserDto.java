@@ -1,6 +1,5 @@
 package com.app.BugBee.dto;
 
-import com.app.BugBee.entity.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +15,6 @@ public class UserDto {
     private String email;
     private String name;
     private boolean showNsfw;
-    private Profile profile;
+    private String profile;
+    private String profilePath;
 }
