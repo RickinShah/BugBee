@@ -4,14 +4,14 @@ import lombok.Getter;
 
 @Getter
 public enum PROFILES {
-    P1(System.getenv("STORAGE") + "/profiles/p1.jpg"),
-    P2(System.getenv("STORAGE") + "/profiles/p2.jpg"),
-    P3(System.getenv("STORAGE") + "/profiles/p3.jpg"),
-    P4(System.getenv("STORAGE") + "/profiles/p4.jpg");
+    P1(new String[]{System.getenv("STORAGE") + "/profiles/p1.jpg", System.getenv("NGINX_STORAGE" + "/profiles/p1.jpg")}),
+    P2(new String[]{System.getenv("STORAGE") + "/profiles/p2.jpg", System.getenv("NGINX_STORAGE" + "/profiles/p2.jpg")}),
+    P3(new String[]{System.getenv("STORAGE") + "/profiles/p3.jpg", System.getenv("NGINX_STORAGE" + "/profiles/p3.jpg")}),
+    P4(new String[]{System.getenv("STORAGE") + "/profiles/p4.jpg", System.getenv("NGINX_STORAGE" + "/profiles/p4.jpg")});
 
-    private final String value;
+    private final String[] values;
 
-    PROFILES(String value) {
-        this.value = value;
+    PROFILES(String[] values) {
+        this.values = values;
     }
 }

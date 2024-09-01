@@ -14,7 +14,7 @@ public class DtoEntityMapper {
     public static UserDto userToDto(User user) {
         UserDto userDto = new UserDto();
         BeanUtils.copyProperties(user, userDto);
-        userDto.setProfilePath(PROFILES.valueOf(user.getProfile()).getValue());
+        userDto.setProfilePath(PROFILES.valueOf(user.getProfile()).getValues()[1]);
         return userDto;
     }
 
@@ -35,7 +35,7 @@ public class DtoEntityMapper {
 
         postDto.setUser(new UserInfoDto());
         BeanUtils.copyProperties(post.getUser(), postDto.getUser());
-        postDto.getUser().setProfilePath(PROFILES.valueOf(post.getUser().getProfile()).getValue());
+        postDto.getUser().setProfilePath(PROFILES.valueOf(post.getUser().getProfile()).getValues()[1]);
 
         return postDto;
     }

@@ -46,18 +46,22 @@ public class PostHandler {
 
     public Mono<ServerResponse> insertPost(ServerRequest request) {
 //        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
-        final long userId = 3446799883267216476L;
+        final long userId = 3447242560295146601L;
         return request.body(BodyExtractors.toMultipartData())
                 .map(MultiValueMap::toSingleValueMap)
                 .flatMap(partMap ->
                         Mono.just((FormFieldPart) partMap.get("post"))
-                                .map(postForm -> new PostDto(JsonParserFactory.getJsonParser().parseMap(postForm.value()), userId))
-                                .map(DtoEntityMapper::dtoToPost)
+                                .map(postForm -> DtoEntityMapper.dtoToPost(
+                                        new PostDto(JsonParserFactory
+                                                .getJsonParser()
+                                                .parseMap(postForm.value()), userId))
+                                )
+                                .doOnNext(post -> post.setPostType((getPostType(((FilePart) partMap.get("resource")).filename())).name()))
                                 .flatMap(repository::savePost)
                                 .flatMap(post -> {
                                             FilePart resource = (FilePart) partMap.get("resource");
                                             return saveFileToPath(
-                                                    getPostPath(resource.filename()), resource, post.getPostId());
+                                                    getPostType(resource.filename()).getValues()[0], resource, post.getPostId());
                                         }
                                 ))
                 .then(ServerResponse.ok().body(BodyInserters.fromValue("done")));
@@ -133,6 +137,7 @@ public class PostHandler {
                                             postDto.setVoteStatus(postUserVote.isVoteStatus());
                                             postDto.setVotedFlag(true);
                                         })
+                                        .doOnNext(postUserVote -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]))
                                         .map(postUserVote -> postDto)
                                         .switchIfEmpty(Mono.just(postDto))
                         )
@@ -154,6 +159,7 @@ public class PostHandler {
                                     postDto.setVoteStatus(postUserVote.isVoteStatus());
                                     postDto.setVotedFlag(true);
                                 })
+                                .doOnNext(postUserVote -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]))
                                 .map(postUserVote -> postDto)
                                 .flatMap(postDto1 -> ServerResponse.ok().body(BodyInserters.fromValue(postDto1)))
                                 .switchIfEmpty(ServerResponse.ok().body(BodyInserters.fromValue(postDto)))
@@ -203,17 +209,17 @@ public class PostHandler {
 
     }
 
-    private String getPostPath(String postName) {
+    private POST_TYPE getPostType(String postName) {
         postName = postName.toLowerCase();
         if (postName.matches(".*\\.(png|jpg)$"))
-            return POST_TYPE.IMAGE.getValue();
+            return POST_TYPE.IMAGE;
         else if (postName.matches(".*\\.(mp4|webm)$"))
-            return POST_TYPE.VIDEO.getValue();
+            return POST_TYPE.VIDEO;
         else if (postName.matches(".*\\.(mp3|wav|ogg)$"))
-            return POST_TYPE.AUDIO.getValue();
+            return POST_TYPE.AUDIO;
         else if (postName.matches(".*\\.(pdf)$"))
-            return POST_TYPE.IMAGE.getValue();
-        return POST_TYPE.QUESTION.getValue();
+            return POST_TYPE.DOCUMENT;
+        return POST_TYPE.QUESTION;
     }
 
     private Mono<Void> saveFileToPath(String path, FilePart resource, long postId) {
