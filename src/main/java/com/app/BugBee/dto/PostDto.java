@@ -20,12 +20,12 @@ public class PostDto {
     private int upvoteCount;
     private int downvoteCount;
     private int commentCount;
-    private boolean nsfwFlag;
     private LocalDate updatedAt;
     private boolean updateFlag;
     private UserInfoDto user;
     private boolean voteStatus;
     private boolean votedFlag;
+    private ResourceDto resource;
 
     public PostDto(Map<String, Object> postMap, long userId) {
         this.postId = Long.parseLong(postMap.getOrDefault("postId", "0").toString());
@@ -35,7 +35,6 @@ public class PostDto {
         this.upvoteCount = Integer.parseInt(postMap.getOrDefault("upvoteCount", "0").toString());
         this.downvoteCount = Integer.parseInt(postMap.getOrDefault("downvoteCount", "0").toString());
         this.commentCount = Integer.parseInt(postMap.getOrDefault("commentCount", "0").toString());
-        this.nsfwFlag = Boolean.parseBoolean(postMap.getOrDefault("nsfwFlag", "false").toString());
         this.updatedAt = LocalDate.now();
         this.updateFlag = Boolean.parseBoolean(postMap.getOrDefault("updateFlag", "false").toString());
         this.voteStatus = Boolean.parseBoolean(postMap.getOrDefault("voteStatus", "false").toString());

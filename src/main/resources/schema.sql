@@ -40,14 +40,15 @@ CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS
 
 -- Don't change the sequence of these tables
 -- Uncomment below if you want functionality like DROP-CREATE
-DROP TABLE IF EXISTS bugbee.reply_user_vote;
-DROP TABLE IF EXISTS bugbee.comment_user_vote;
-DROP TABLE IF EXISTS bugbee.post_user_vote;
-DROP TABLE IF EXISTS bugbee.replies;
-DROP TABLE IF EXISTS bugbee.comments;
-DROP TABLE IF EXISTS bugbee.posts;
-DROP TABLE IF EXISTS bugbee.otps;
-DROP TABLE IF EXISTS bugbee.users;
+-- DROP TABLE IF EXISTS bugbee.reply_user_vote;
+-- DROP TABLE IF EXISTS bugbee.comment_user_vote;
+-- DROP TABLE IF EXISTS bugbee.post_user_vote;
+-- DROP TABLE IF EXISTS bugbee.replies;
+-- DROP TABLE IF EXISTS bugbee.comments;
+DROP TABLE IF EXISTS bugbee.resources;
+-- DROP TABLE IF EXISTS bugbee.posts;
+-- DROP TABLE IF EXISTS bugbee.otps;
+-- DROP TABLE IF EXISTS bugbee.users;
 
 CREATE TABLE IF NOT EXISTS bugbee.users
 (
@@ -66,13 +67,13 @@ CREATE TABLE IF NOT EXISTS bugbee.users
 -- Adding a user as ROLE_ADMIN
 -- Username: admin
 -- Password: admin
-INSERT INTO bugbee.users(email, username, name, password, roles, profile) VALUES (
-    'rickinshah.21.cs@iite.indusuni.ac.in',
-    'admin',
-    'Admin',
-    '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
-    'ROLE_ADMIN',
-    'P1');
+-- INSERT INTO bugbee.users(email, username, name, password, roles, profile) VALUES (
+--     'rickinshah.21.cs@iite.indusuni.ac.in',
+--     'admin',
+--     'Admin',
+--     '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
+--     'ROLE_ADMIN',
+--     'P1');
 
 CREATE TABLE IF NOT EXISTS bugbee.otps
 (
@@ -96,7 +97,6 @@ CREATE TABLE IF NOT EXISTS bugbee.posts
     upvote_count   INT          NOT NULL DEFAULT 0,
     downvote_count INT          NOT NULL DEFAULT 0,
     comment_count  INT          NOT NULL DEFAULT 0,
-    nsfw_flag      BOOLEAN      NOT NULL DEFAULT FALSE,
     updated_at     DATE         NOT NULL,
     update_flag    BOOLEAN      NOT NULL DEFAULT FALSE,
     PRIMARY KEY (post_pid),
@@ -104,6 +104,18 @@ CREATE TABLE IF NOT EXISTS bugbee.posts
         FOREIGN KEY (user_id)
             REFERENCES bugbee.users (user_pid)
             ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS bugbee.resources
+(
+    post_pid      BIGINT,
+    file_format  VARCHAR(15)  NOT NULL,
+    nsfw_flag    BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (post_pid),
+    CONSTRAINT fk_resources_posts
+        FOREIGN KEY (post_pid)
+            REFERENCES bugbee.posts (post_pid)
+            ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS bugbee.comments

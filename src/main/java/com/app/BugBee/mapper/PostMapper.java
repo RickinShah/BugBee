@@ -19,10 +19,10 @@ public class PostMapper implements BiFunction<Row, Object, Post> {
                 .upvoteCount(row.get("upvote_count", Short.class))
                 .downvoteCount(row.get("downvote_count", Short.class))
                 .commentCount(row.get("comment_count", Short.class))
-                .nsfwFlag(row.get("nsfw_flag", Boolean.class))
                 .updatedAt(row.get("updated_at", LocalDate.class))
                 .updateFlag(row.get("update_flag", Boolean.class))
                 .user(new UserMapper().apply(row, object))
+                .resource(new ResourceMapper().apply(row, object))
                 .build();
     }
 }

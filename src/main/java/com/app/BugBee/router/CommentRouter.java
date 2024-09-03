@@ -16,7 +16,7 @@ public class CommentRouter {
 //                .GET("/posts/{postId}/comments", handler::getCommentsByPostId)
 //                .POST("/posts/{postId}/comments", handler::insertCommentByPostId)
 //                .PATCH("/posts/{postId}/comments/{commentId}", handler::editComment)
-//                .DELETE("/posts/{psotId}/comments/{commentId}")
+//                .DELETE("/posts/{postId}/comments/{commentId}")
 //                .build();
 //
 //    }

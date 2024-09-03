@@ -29,11 +29,10 @@ public class Post {
     private int downvoteCount;
     @Column("comment_count")
     private int commentCount;
-    @Column("nsfw_flag")
-    private boolean nsfwFlag;
     @Column("updated_at")
     private LocalDate updatedAt;
     @Column("update_flag")
     private boolean updateFlag;
     private User user;
+    private Resource resource;
 }

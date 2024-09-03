@@ -70,6 +70,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .bind("showNsfw", user.isShowNsfw())
                     .bind("profile", user.getProfile())
                     .bind("bio", Parameters.in(R2dbcType.VARCHAR, user.getBio()))
+                    .bind("userId", user.getUserId())
                     .map(userMapper::apply)
                     .first();
         }

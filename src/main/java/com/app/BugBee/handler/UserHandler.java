@@ -73,9 +73,12 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> updatePassword(ServerRequest request) {
-        return request.bodyToMono(User.class)
-                .flatMap(user -> repository.findByUsername(user.getEmail())
+        String username = request.pathVariable("username");
+        Mono<User> userMono = request.bodyToMono(User.class).doOnNext(user -> user.setUsername(username));
+        return userMono
+                .flatMap(user -> repository.findByUsername(user.getUsername())
                         .doOnNext(e -> e.setPassword(passwordEncoder.encode(user.getPassword()))))
+                .doOnNext(e->log.info(e.toString()))
                 .flatMap(repository::saveUser)
                 .flatMap(e -> ServerResponse.ok()
                         .body(BodyInserters

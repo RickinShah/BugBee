@@ -45,7 +45,8 @@ public class OtpHandler {
     }
 
     public Mono<ServerResponse> validateOtp(ServerRequest request) {
-        Mono<AuthOtp> authOtpMono = request.bodyToMono(AuthOtp.class);
+        String email = request.pathVariable("username");
+        Mono<AuthOtp> authOtpMono = request.bodyToMono(AuthOtp.class).doOnNext(authOtp -> authOtp.setEmail(email));
         return authOtpMono
                 .flatMap(authOtp -> repository.findByUsernameOrEmail(authOtp.getEmail(), authOtp.getEmail())
                         .flatMap(user -> otpRepository.findById(user.getUserId()))
@@ -75,12 +76,15 @@ public class OtpHandler {
 
         return otpRepository.save(otp)
                 .flatMap(otpObj -> repository.findById(otp.getUserId()))
-                .map(e -> mailSender.sendMail(user.getEmail(),
-                        "One-Time Password from BugBee",
-                        "Hello " + user.getUsername() + ", <strong>" + otpValue
-                                + "</strong> is your One-Time Password(OTP) from BugBee. OTP is valid upto next 15 minutes.",
-                        null
-                ))
+                .map(e -> {
+                    BooleanAndMessage booleanAndMessage = mailSender.sendMail(user.getEmail(),
+                            "One-Time Password from BugBee",
+                            "Hello " + user.getUsername() + ", <strong>" + otpValue
+                                    + "</strong> is your One-Time Password(OTP) from BugBee. OTP is valid upto next 15 minutes.",
+                            null
+                    );
+                    return new BooleanAndMessage(booleanAndMessage.isSuccess(), e.getUsername());
+                })
                 .defaultIfEmpty(new BooleanAndMessage(false, "Something went wrong!"));
     }
 

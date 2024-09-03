@@ -25,7 +25,7 @@ public class PostRouter {
                 .DELETE("/posts/{postId}", handler::deletePost)
                 .PATCH("/posts/{postId}", handler::updatePost)
                 .POST("/posts/{postId}", handler::votePost)
-                .route(RequestPredicates.POST("/posts")
+                .route(RequestPredicates.POST("/auth/posts")
                         .and(RequestPredicates.contentType(MediaType.MULTIPART_FORM_DATA)), handler::insertPost
                 )
                 .build();

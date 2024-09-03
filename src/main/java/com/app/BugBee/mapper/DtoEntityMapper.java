@@ -1,9 +1,11 @@
 package com.app.BugBee.mapper;
 
 import com.app.BugBee.dto.PostDto;
+import com.app.BugBee.dto.ResourceDto;
 import com.app.BugBee.dto.UserDto;
 import com.app.BugBee.dto.UserInfoDto;
 import com.app.BugBee.entity.Post;
+import com.app.BugBee.entity.Resource;
 import com.app.BugBee.entity.User;
 import com.app.BugBee.enums.PROFILES;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,13 @@ public class DtoEntityMapper {
         BeanUtils.copyProperties(post.getUser(), postDto.getUser());
         postDto.getUser().setProfilePath(PROFILES.valueOf(post.getUser().getProfile()).getValues()[1]);
 
+        if (post.getResource() == null) {
+            return postDto;
+        }
+
+        postDto.setResource(new ResourceDto());
+        BeanUtils.copyProperties(post.getResource(), postDto.getResource());
+
         return postDto;
     }
 
@@ -49,6 +58,13 @@ public class DtoEntityMapper {
         }
         post.setUser(new User());
         BeanUtils.copyProperties(postDto.getUser(), post.getUser());
+
+        if (postDto.getResource() == null) {
+            return post;
+        }
+
+        post.setResource(new Resource());
+        BeanUtils.copyProperties(postDto.getResource(), post.getResource());
 
         return post;
     }

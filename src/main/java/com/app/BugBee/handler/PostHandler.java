@@ -3,11 +3,13 @@ package com.app.BugBee.handler;
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.dto.PostDto;
 import com.app.BugBee.entity.PostUserVote;
+import com.app.BugBee.entity.Resource;
+import com.app.BugBee.enums.FILE_FORMATS;
 import com.app.BugBee.enums.POST_TYPE;
 import com.app.BugBee.mapper.DtoEntityMapper;
-import com.app.BugBee.mapper.PostMapper;
 import com.app.BugBee.repository.PostRepository;
 import com.app.BugBee.repository.PostVoteRepository;
+import com.app.BugBee.repository.ResourceRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.json.JsonParserFactory;
@@ -38,15 +40,18 @@ public class PostHandler {
 
     private final PostVoteRepository postVoteRepository;
 
-    public PostHandler(PostRepository repository, JwtTokenProvider tokenProvider, PostVoteRepository postVoteRepository, PostMapper postMapper) {
+    private final ResourceRepository resourceRepository;
+
+    public PostHandler(PostRepository repository, JwtTokenProvider tokenProvider, PostVoteRepository postVoteRepository, ResourceRepository resourceRepository) {
         this.repository = repository;
         this.tokenProvider = tokenProvider;
         this.postVoteRepository = postVoteRepository;
+        this.resourceRepository = resourceRepository;
     }
 
     public Mono<ServerResponse> insertPost(ServerRequest request) {
 //        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
-        final long userId = 3447242560295146601L;
+        final long userId = 3448660623615857777L;
         return request.body(BodyExtractors.toMultipartData())
                 .map(MultiValueMap::toSingleValueMap)
                 .flatMap(partMap ->
@@ -54,17 +59,27 @@ public class PostHandler {
                                 .map(postForm -> DtoEntityMapper.dtoToPost(
                                         new PostDto(JsonParserFactory
                                                 .getJsonParser()
-                                                .parseMap(postForm.value()), userId))
-                                )
+                                                .parseMap(postForm.value()), userId)
+                                ))
                                 .doOnNext(post -> post.setPostType((getPostType(((FilePart) partMap.get("resource")).filename())).name()))
                                 .flatMap(repository::savePost)
                                 .flatMap(post -> {
-                                            FilePart resource = (FilePart) partMap.get("resource");
-                                            return saveFileToPath(
-                                                    getPostType(resource.filename()).getValues()[0], resource, post.getPostId());
-                                        }
-                                ))
-                .then(ServerResponse.ok().body(BodyInserters.fromValue("done")));
+                                    FilePart resource = (FilePart) partMap.get("resource");
+                                    return saveFileToPath(
+                                            POST_TYPE.valueOf(post.getPostType()).getValues()[0],
+                                            resource,
+                                            post.getPostId())
+                                            .map(fileFormat -> Resource.builder()
+                                                    .fileFormat(fileFormat)
+                                                    .postId(post.getPostId())
+                                                    .nsfwFlag(false)
+                                                    .build()
+                                            );
+                                }))
+                .flatMap(resourceRepository::save)
+                .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
+                        new BooleanAndMessage(true, "Posted Successfully!")
+                )));
     }
 
     public Mono<ServerResponse> updatePost(ServerRequest request) {
@@ -129,6 +144,7 @@ public class PostHandler {
                                 Integer.parseInt(offsetAndSize.getFirst("offset")),
                                 Integer.parseInt(offsetAndSize.getFirst("size"))))
                         .map(DtoEntityMapper::postToDto)
+                        .doOnNext(postDto -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] + "/" + postDto.getPostId() + FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value))
                         .flatMap(postDto ->
                                 postVoteRepository.findByUserIdAndPostId(
                                                 userId, postDto.getPostId()
@@ -151,6 +167,7 @@ public class PostHandler {
 
         return repository.findByPostId(postId)
                 .map(DtoEntityMapper::postToDto)
+                .doOnNext(postDto -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] + "/" + postDto.getPostId() + FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value))
                 .flatMap(postDto ->
                         postVoteRepository.findByUserIdAndPostId(
                                         userId, postDto.getPostId()
@@ -159,7 +176,6 @@ public class PostHandler {
                                     postDto.setVoteStatus(postUserVote.isVoteStatus());
                                     postDto.setVotedFlag(true);
                                 })
-                                .doOnNext(postUserVote -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]))
                                 .map(postUserVote -> postDto)
                                 .flatMap(postDto1 -> ServerResponse.ok().body(BodyInserters.fromValue(postDto1)))
                                 .switchIfEmpty(ServerResponse.ok().body(BodyInserters.fromValue(postDto)))
@@ -222,15 +238,15 @@ public class PostHandler {
         return POST_TYPE.QUESTION;
     }
 
-    private Mono<Void> saveFileToPath(String path, FilePart resource, long postId) {
-        String fileType = resource.filename().substring(resource.filename().lastIndexOf('.'));
+    private Mono<String> saveFileToPath(String path, FilePart resource, long postId) {
+        String fileFormat = resource.filename().substring(resource.filename().lastIndexOf('.'));
         if (!new File(path).exists()) {
             new File(path).mkdirs();
         }
-        Path filePath = Path.of(new File(path + "/" + postId + fileType).getAbsolutePath());
+        Path filePath = Path.of(new File(path + "/" + postId + fileFormat).getAbsolutePath());
         return DataBufferUtils.write(resource.content(), filePath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 //                .doOnSuccess(e -> log.info("File saved successfully to {}", filePath.toAbsolutePath()))
 //                .doOnError(e -> log.error("Failed to save file", e))
-                .then();
+                .then(Mono.just(fileFormat.substring(1).toUpperCase()));
     }
 }

@@ -22,8 +22,9 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - STORAGE=${STORAGE}
       - CROSS_ORIGIN_URL=${CROSS_ORIGIN_URL}
-#    ports:
-#      - "8443:8443"
+      - NGINX_STORAGE=${NGINX_STORAGE}
+    #    ports:
+    #      - "8443:8443"
     volumes:
       - ${SSL_DIR}:/app/ssl
       - ${STORAGE}:/bugbee
@@ -49,3 +50,4 @@ services:
     volumes:
       - ${NGINX_DIR}:/etc/nginx
       - ${SSL_DIR}:/app/ssl
+      - ${STORAGE}:/bugbee
