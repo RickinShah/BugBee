@@ -52,30 +52,32 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, JwtTokenProvider tokenProvider) {
         return http
-                .cors(Customizer.withDefaults())
+//                .cors(Customizer.withDefaults())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth ->
-                        auth.pathMatchers("/auth/**").permitAll()
-                                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .pathMatchers("/users/**", "/posts/**").authenticated()
-                                .pathMatchers("/admin/**").hasRole("ADMIN")
+                        auth.pathMatchers("/api/auth/**").permitAll()
+//                                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .pathMatchers("/api/users/**", "/api/posts/**").authenticated()
+                                .pathMatchers("/api/admin/**").hasRole("ADMIN")
                 )
                 .addFilterAt(new JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)
-                .formLogin(Customizer.withDefaults()).build();
+//                .formLogin(Customizer.withDefaults()).build();
+                .formLogin(formLoginSpec -> formLoginSpec.loginPage("/"))
+                .build();
     }
 
-    @Bean
-    public CorsWebFilter corsWebFilter() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(System.getenv("CROSS_ORIGIN_URL")));
-        configuration.setAllowCredentials(true);
-        configuration.addAllowedHeader("*");
-        configuration.addAllowedMethod("*");
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return new CorsWebFilter(source);
-    }
+//    @Bean
+//    public CorsWebFilter corsWebFilter() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(Arrays.asList(System.getenv("CROSS_ORIGIN_URL")));
+//        configuration.setAllowCredentials(true);
+//        configuration.addAllowedHeader("*");
+//        configuration.addAllowedMethod("*");
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return new CorsWebFilter(source);
+//    }
 
     @Bean
     public ReactiveAuthenticationManager reactiveAuthenticationManager(ReactiveUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {

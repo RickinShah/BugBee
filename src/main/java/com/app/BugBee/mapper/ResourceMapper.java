@@ -13,6 +13,7 @@ public class ResourceMapper implements BiFunction<Row, Object, Resource> {
             return Resource.builder()
                     .postId(row.get("post_pid", Long.class))
                     .fileFormat(row.get("file_format", String.class))
+                    .secretKey(row.get("secret_key", String.class))
                     .build();
 
         }
@@ -20,6 +21,7 @@ public class ResourceMapper implements BiFunction<Row, Object, Resource> {
                 .postId(row.get("post_pid", Long.class))
                 .nsfwFlag(row.get("nsfw_flag", Boolean.class))
                 .fileFormat(row.get("file_format", String.class))
+                .secretKey(row.get("secret_key", String.class))
                 .build();
     }
 }

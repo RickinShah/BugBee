@@ -20,14 +20,15 @@ public class PostRouter {
     @Bean
     public RouterFunction<ServerResponse> postRouting() {
         return RouterFunctions.route()
-                .GET("/posts", handler::getNextPosts)
-                .GET("/posts/{postId}", handler::getSinglePost)
-                .DELETE("/posts/{postId}", handler::deletePost)
-                .PATCH("/posts/{postId}", handler::updatePost)
-                .POST("/posts/{postId}", handler::votePost)
-                .route(RequestPredicates.POST("/auth/posts")
+                .GET("/api/posts", handler::getNextPosts)
+                .GET("/api/posts/{postId}", handler::getSinglePost)
+                .DELETE("/api/posts/{postId}", handler::deletePost)
+                .PATCH("/api/posts/{postId}", handler::updatePost)
+                .POST("/api/posts/{postId}", handler::votePost)
+                .route(RequestPredicates.POST("/api/auth/posts")
                         .and(RequestPredicates.contentType(MediaType.MULTIPART_FORM_DATA)), handler::insertPost
                 )
+                .GET("/api/auth/posts/{postId}", handler::decryptAndGetFile)
                 .build();
     }
 }

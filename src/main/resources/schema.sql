@@ -45,7 +45,7 @@ CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS
 -- DROP TABLE IF EXISTS bugbee.post_user_vote;
 -- DROP TABLE IF EXISTS bugbee.replies;
 -- DROP TABLE IF EXISTS bugbee.comments;
-DROP TABLE IF EXISTS bugbee.resources;
+-- DROP TABLE IF EXISTS bugbee.resources;
 -- DROP TABLE IF EXISTS bugbee.posts;
 -- DROP TABLE IF EXISTS bugbee.otps;
 -- DROP TABLE IF EXISTS bugbee.users;
@@ -108,15 +108,21 @@ CREATE TABLE IF NOT EXISTS bugbee.posts
 
 CREATE TABLE IF NOT EXISTS bugbee.resources
 (
-    post_pid      BIGINT,
+    post_pid     BIGINT,
     file_format  VARCHAR(15)  NOT NULL,
     nsfw_flag    BOOLEAN NOT NULL DEFAULT FALSE,
+    secret_key   VARCHAR(50),
+    iv           bytea,
     PRIMARY KEY (post_pid),
     CONSTRAINT fk_resources_posts
         FOREIGN KEY (post_pid)
             REFERENCES bugbee.posts (post_pid)
             ON DELETE CASCADE
 );
+
+-- ALTER TABLE bugbee.resources ADD COLUMN IF NOT EXISTS secret_key VARCHAR(100);
+-- ALTER TABLE bugbee.resources DROP COLUMN iv ;
+-- ALTER TABLE bugbee.resources ADD COLUMN IF NOT EXISTS iv bytea;
 
 CREATE TABLE IF NOT EXISTS bugbee.comments
 (

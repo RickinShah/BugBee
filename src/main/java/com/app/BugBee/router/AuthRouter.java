@@ -23,11 +23,11 @@ public class AuthRouter {
     @Bean
     public RouterFunction<ServerResponse> authRouting() {
         return RouterFunctions.route()
-                .POST("/auth/signup", userHandler::signUp)
-                .POST("/auth/login", userHandler::loginAndGetToken)
-                .POST("/auth/otp", otpHandler::sendOtp)
-                .POST("/auth/otp/{username}", otpHandler::validateOtp)
-                .PATCH("/auth/otp/{username}", userHandler::updatePassword)
+                .POST("/api/auth/signup", userHandler::signUp)
+                .POST("/api/auth/login", userHandler::loginAndGetToken)
+                .POST("/api/auth/otp", otpHandler::sendOtp)
+                .POST("/api/auth/otp/{username}", otpHandler::validateOtp)
+                .PATCH("/api/auth/otp/{username}", userHandler::updatePassword)
                 .build();
     }
 }

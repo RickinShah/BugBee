@@ -18,10 +18,10 @@ public class UserRouter {
     @Bean
     public RouterFunction<ServerResponse> userRouting() {
         return RouterFunctions.route()
-                .GET("/users/{username}", handler::userProfile)
-                .PATCH("/users/password", handler::updatePassword)
-                .DELETE("/users/delete", handler::deleteUser)
-                .PATCH("/users/settings", handler::updateProfile)
+                .GET("/api/users/{username}", handler::userProfile)
+                .PATCH("/api/users/password", handler::updatePassword)
+                .DELETE("/api/users/delete", handler::deleteUser)
+                .PATCH("/api/users/settings", handler::updateProfile)
                 .build();
     }
 }

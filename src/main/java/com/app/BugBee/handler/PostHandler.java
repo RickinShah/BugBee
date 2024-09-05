@@ -2,6 +2,7 @@ package com.app.BugBee.handler;
 
 import com.app.BugBee.dto.BooleanAndMessage;
 import com.app.BugBee.dto.PostDto;
+import com.app.BugBee.entity.Post;
 import com.app.BugBee.entity.PostUserVote;
 import com.app.BugBee.entity.Resource;
 import com.app.BugBee.enums.FILE_FORMATS;
@@ -11,14 +12,18 @@ import com.app.BugBee.repository.PostRepository;
 import com.app.BugBee.repository.PostVoteRepository;
 import com.app.BugBee.repository.ResourceRepository;
 import com.app.BugBee.security.JwtTokenProvider;
+import com.app.BugBee.utils.FileEncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.Tika;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -26,10 +31,15 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.util.Base64;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -61,25 +71,52 @@ public class PostHandler {
                                                 .getJsonParser()
                                                 .parseMap(postForm.value()), userId)
                                 ))
-                                .doOnNext(post -> post.setPostType((getPostType(((FilePart) partMap.get("resource")).filename())).name()))
+                                .doOnNext(post -> post.setPostType(
+                                        (getPostType(((FilePart) partMap.get("resource")).filename())).name()))
                                 .flatMap(repository::savePost)
                                 .flatMap(post -> {
                                     FilePart resource = (FilePart) partMap.get("resource");
-                                    return saveFileToPath(
-                                            POST_TYPE.valueOf(post.getPostType()).getValues()[0],
-                                            resource,
-                                            post.getPostId())
-                                            .map(fileFormat -> Resource.builder()
-                                                    .fileFormat(fileFormat)
-                                                    .postId(post.getPostId())
-                                                    .nsfwFlag(false)
-                                                    .build()
-                                            );
+                                        return saveFileToPath(
+                                                POST_TYPE.valueOf(post.getPostType()).getValues()[0],
+                                                resource,
+                                                post);
                                 }))
-                .flatMap(resourceRepository::save)
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(true, "Posted Successfully!")
                 )));
+    }
+
+    // TODO: Implement method to download file
+//    public Mono<ServerResponse> downloadFile(ServerRequest request) {
+//        try {
+//            SecretKey key = ret
+//        }
+//    }
+
+    public Mono<ServerResponse> decryptAndGetFile(ServerRequest request) {
+        long postId = Long.parseLong(request.pathVariable("postId"));
+
+        return repository.findByPostId(postId)
+                .map(post -> POST_TYPE.valueOf(post.getPostType()).getValues()[0] + "/" + post.getPostId() + FILE_FORMATS.valueOf(post.getResource().getFileFormat()).value)
+                .flatMap(path -> {
+                    File file = new File(path);
+                    try {
+                        byte[] encryptedContent = FileCopyUtils.copyToByteArray(file.getAbsoluteFile());
+                        return resourceRepository.findById(postId)
+                                .map(resource -> {
+                                    byte[] decodedKey = Base64.getDecoder().decode(resource.getSecretKey());
+                                    SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+                                        return FileEncryptionUtils.decrypt(encryptedContent, key, resource.getIv());
+                                })
+                                .map(bytes -> Map.of(
+                                "file", bytes,
+                                "mediaType", new Tika().detect(bytes)));
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .flatMap(e -> ServerResponse.ok().contentType(MediaType.parseMediaType(e.get("mediaType").toString())).body(BodyInserters.fromValue(e.get("file"))));
     }
 
     public Mono<ServerResponse> updatePost(ServerRequest request) {
@@ -238,15 +275,45 @@ public class PostHandler {
         return POST_TYPE.QUESTION;
     }
 
-    private Mono<String> saveFileToPath(String path, FilePart resource, long postId) {
+    private Mono<Long> saveFileToPath(String path, FilePart resource, Post post) {
         String fileFormat = resource.filename().substring(resource.filename().lastIndexOf('.'));
         if (!new File(path).exists()) {
             new File(path).mkdirs();
         }
-        Path filePath = Path.of(new File(path + "/" + postId + fileFormat).getAbsolutePath());
-        return DataBufferUtils.write(resource.content(), filePath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-//                .doOnSuccess(e -> log.info("File saved successfully to {}", filePath.toAbsolutePath()))
-//                .doOnError(e -> log.error("Failed to save file", e))
-                .then(Mono.just(fileFormat.substring(1).toUpperCase()));
+        Path filePath = Path.of(new File(path + "/" + post.getPostId() + fileFormat).getAbsolutePath());
+
+        return DataBufferUtils.join(resource.content())
+                .flatMap(dataBuffer ->{
+                            byte[] fileBytes = new byte[dataBuffer.readableByteCount()];
+                            dataBuffer.read(fileBytes);
+                            DataBufferUtils.release(dataBuffer);
+                            try {
+                                SecretKey secretKey = FileEncryptionUtils.generateKey();
+                                byte[] iv = new byte[16];
+                                new SecureRandom().nextBytes(iv);
+
+                                byte[] encryptedContent = FileEncryptionUtils.encrypt(fileBytes, secretKey, iv);
+
+                                return Mono.fromCallable(() -> {
+                                    FileCopyUtils.copy(encryptedContent, new File(filePath.toString()).getAbsoluteFile());
+                                    return 1;
+                                })
+                                        .map(e -> Resource.builder()
+                                                .secretKey(Base64.getEncoder().encodeToString(secretKey.getEncoded()))
+                                                .postId(post.getPostId())
+                                                .fileFormat(fileFormat).nsfwFlag(false)
+                                                .iv(iv)
+                                                .build()
+                                        )
+//                                        .doOnNext(resource1 -> log.info("{}", resource1.getSecretKey()))
+                                        .doOnNext(resource1 -> resource1.setFileFormat(FILE_FORMATS.valueOf(fileFormat.substring(1).toUpperCase()).name()))
+                                        .flatMap(resourceRepository::save);
+                            } catch (Exception e) {
+                                log.info(e.getMessage());
+                                return Mono.empty();
+
+                            }
+
+                });
     }
 }
