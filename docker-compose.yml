@@ -21,7 +21,6 @@ services:
       - SSL_CERTIFICATE_LOCATION=${SSL_CERTIFICATE_LOCATION}
       - SECRET_KEY=${SECRET_KEY}
       - STORAGE=${STORAGE}
-      - CROSS_ORIGIN_URL=${CROSS_ORIGIN_URL}
       - NGINX_STORAGE=${NGINX_STORAGE}
     #    ports:
     #      - "8443:8443"
@@ -51,3 +50,4 @@ services:
       - ${NGINX_DIR}:/etc/nginx
       - ${SSL_DIR}:/app/ssl
       - ${STORAGE}:/bugbee
+      - ${FRONTEND_BUILD}:/usr/share/nginx/html

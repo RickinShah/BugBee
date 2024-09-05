@@ -34,3 +34,7 @@ build/
 
 ### Project Files ###
 .env
+
+### React ###
+src/main/frontend/dist
+src/main/frontend/node_modules
