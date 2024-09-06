@@ -65,23 +65,19 @@ public class CommentHandler {
                 });
 
         return commentUserVoteMono
-                .doOnNext(e -> log.info("{}", e))
                 .flatMap(commentUserVote ->
                         commentVoteRepository.existsByCommentIdAndUserId(
                                 commentUserVote.getCommentId(),
                                 commentUserVote.getUserId()
                         )
-                                .doOnNext(e -> log.info("{}", e))
                         .flatMap(exists -> exists ?
                                 upvoteOrDowvoteIfAlreadyExists(commentUserVote) :
                                 upvoteOrDownvoteIfNotExists(commentUserVote)
                         )
-                                .doOnNext(e -> log.info("{}", e))
                 )
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(e.isSuccess(), e.getMessage())
                 )))
-                .doOnNext(e -> log.info("{}", e))
                 .onErrorResume(Exception.class, e -> {
                     log.info(e.getMessage());
                     return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
@@ -95,7 +91,6 @@ public class CommentHandler {
         final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final Mono<CommentDto> commentDtoMono = request.bodyToMono(CommentDto.class)
-                .doOnNext(commentDto -> log.info("{}", commentDto))
                 .doOnNext(commentDto -> {
                     commentDto.setPost(PostDto.builder().postId(postId).build());
                     commentDto.setUser(UserInfoDto.builder().userId(userId).build());
@@ -104,9 +99,7 @@ public class CommentHandler {
                 });
 
         return commentDtoMono
-                .doOnNext(commentDto -> log.info("{}", commentDto))
                 .map(DtoEntityMapper::dtoToComment)
-                .doOnNext(commentDto -> log.info("{}", commentDto))
                 .flatMap(repository::saveComment)
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(true, "Comment Added!")
@@ -188,8 +181,6 @@ public class CommentHandler {
         return Mono.fromCallable(() -> commentUserVote)
                 .flatMap(commentUserVote1 -> commentVoteRepository.findByCommentId(commentUserVote.getCommentId())
                         .doOnNext(commentUserVote2 -> commentUserVote1.setVoteId(commentUserVote2.getVoteId()))
-                        .doOnNext(commentUserVote2 -> log.info("{}", commentUserVote1))
-                        .doOnNext(commentUserVote2 -> log.info("{}", commentUserVote2))
                         .flatMap(commentUserVote2 -> commentUserVote1.isVoteStatus() == commentUserVote2.isVoteStatus() ?
                                 deleteVote(commentUserVote1) :
                                 toggleVote(commentUserVote1)
