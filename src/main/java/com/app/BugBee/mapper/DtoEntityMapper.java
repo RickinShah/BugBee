@@ -1,9 +1,7 @@
 package com.app.BugBee.mapper;
 
-import com.app.BugBee.dto.PostDto;
-import com.app.BugBee.dto.ResourceDto;
-import com.app.BugBee.dto.UserDto;
-import com.app.BugBee.dto.UserInfoDto;
+import com.app.BugBee.dto.*;
+import com.app.BugBee.entity.Comment;
 import com.app.BugBee.entity.Post;
 import com.app.BugBee.entity.Resource;
 import com.app.BugBee.entity.User;
@@ -31,21 +29,15 @@ public class DtoEntityMapper {
         PostDto postDto = new PostDto();
         BeanUtils.copyProperties(post, postDto);
 
-        if (post.getUser() == null) {
-            return postDto;
+        if (post.getUser() != null) {
+            postDto.setUser(new UserInfoDto());
+            BeanUtils.copyProperties(post.getUser(), postDto.getUser());
+            postDto.getUser().setProfilePath(PROFILES.valueOf(post.getUser().getProfile()).getValues()[1]);
         }
-
-        postDto.setUser(new UserInfoDto());
-        BeanUtils.copyProperties(post.getUser(), postDto.getUser());
-        postDto.getUser().setProfilePath(PROFILES.valueOf(post.getUser().getProfile()).getValues()[1]);
-
-        if (post.getResource() == null) {
-            return postDto;
+        if (post.getResource() != null) {
+            postDto.setResource(new ResourceDto());
+            BeanUtils.copyProperties(post.getResource(), postDto.getResource());
         }
-
-        postDto.setResource(new ResourceDto());
-        BeanUtils.copyProperties(post.getResource(), postDto.getResource());
-
         return postDto;
     }
 
@@ -53,20 +45,49 @@ public class DtoEntityMapper {
         Post post = new Post();
         BeanUtils.copyProperties(postDto, post, "user");
 
-        if (postDto.getUser() == null) {
-            return post;
+        if (postDto.getUser() != null) {
+            post.setUser(new User());
+            BeanUtils.copyProperties(postDto.getUser(), post.getUser());
         }
-        post.setUser(new User());
-        BeanUtils.copyProperties(postDto.getUser(), post.getUser());
-
-        if (postDto.getResource() == null) {
-            return post;
+        if (postDto.getResource() != null) {
+            post.setResource(new Resource());
+            BeanUtils.copyProperties(postDto.getResource(), post.getResource());
         }
-
-        post.setResource(new Resource());
-        BeanUtils.copyProperties(postDto.getResource(), post.getResource());
 
         return post;
+    }
+
+    public static Comment dtoToComment(CommentDto commentDto) {
+        Comment comment = new Comment();
+        BeanUtils.copyProperties(commentDto, comment);
+
+        if(commentDto.getUser() != null) {
+            comment.setUser(new User());
+            BeanUtils.copyProperties(commentDto.getUser(), comment.getUser());
+        }
+
+        if(commentDto.getPost() != null){
+            comment.setPost(new Post());
+            BeanUtils.copyProperties(commentDto.getPost(), comment.getPost());
+        }
+
+        return comment;
+    }
+
+    public static CommentDto commentToDto(Comment comment) {
+        CommentDto commentDto = new CommentDto();
+        BeanUtils.copyProperties(comment, commentDto);
+
+        if(comment.getUser() != null) {
+            commentDto.setUser(new UserInfoDto());
+            BeanUtils.copyProperties(comment.getUser(), commentDto.getUser());
+        }
+        if(comment.getPost() != null) {
+            commentDto.setPost(new PostDto());
+            BeanUtils.copyProperties(comment.getPost(), commentDto.getPost());
+        }
+
+        return commentDto;
     }
 
 }
