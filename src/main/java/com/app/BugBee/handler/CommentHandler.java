@@ -65,19 +65,23 @@ public class CommentHandler {
                 });
 
         return commentUserVoteMono
+                .doOnNext(e -> log.info("{}", e))
                 .flatMap(commentUserVote ->
                         commentVoteRepository.existsByCommentIdAndUserId(
                                 commentUserVote.getCommentId(),
                                 commentUserVote.getUserId()
                         )
+                                .doOnNext(e -> log.info("{}", e))
                         .flatMap(exists -> exists ?
                                 upvoteOrDowvoteIfAlreadyExists(commentUserVote) :
                                 upvoteOrDownvoteIfNotExists(commentUserVote)
                         )
+                                .doOnNext(e -> log.info("{}", e))
                 )
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
-                        new BooleanAndMessage(true, "Upvoted")
+                        new BooleanAndMessage(e.isSuccess(), e.getMessage())
                 )))
+                .doOnNext(e -> log.info("{}", e))
                 .onErrorResume(Exception.class, e -> {
                     log.info(e.getMessage());
                     return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
@@ -183,7 +187,9 @@ public class CommentHandler {
     private Mono<BooleanAndMessage> upvoteOrDowvoteIfAlreadyExists(CommentUserVote commentUserVote) {
         return Mono.fromCallable(() -> commentUserVote)
                 .flatMap(commentUserVote1 -> commentVoteRepository.findByCommentId(commentUserVote.getCommentId())
-                        .doOnNext(commentUserVote2 -> commentUserVote1.setCommentId(commentUserVote2.getCommentId()))
+                        .doOnNext(commentUserVote2 -> commentUserVote1.setVoteId(commentUserVote2.getVoteId()))
+                        .doOnNext(commentUserVote2 -> log.info("{}", commentUserVote1))
+                        .doOnNext(commentUserVote2 -> log.info("{}", commentUserVote2))
                         .flatMap(commentUserVote2 -> commentUserVote1.isVoteStatus() == commentUserVote2.isVoteStatus() ?
                                 deleteVote(commentUserVote1) :
                                 toggleVote(commentUserVote1)
