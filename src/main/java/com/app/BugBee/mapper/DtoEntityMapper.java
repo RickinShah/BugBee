@@ -69,7 +69,12 @@ public class DtoEntityMapper {
         if(commentDto.getPost() != null){
             comment.setPost(new Post());
             BeanUtils.copyProperties(commentDto.getPost(), comment.getPost());
+            if(commentDto.getPost().getResource() != null){
+                comment.getPost().setResource(new Resource());
+                BeanUtils.copyProperties(commentDto.getPost().getResource(), comment.getPost().getResource());
+            }
         }
+
 
         return comment;
     }
@@ -85,6 +90,10 @@ public class DtoEntityMapper {
         if(comment.getPost() != null) {
             commentDto.setPost(new PostDto());
             BeanUtils.copyProperties(comment.getPost(), commentDto.getPost());
+            if(comment.getPost().getResource() != null){
+                commentDto.getPost().setResource(new ResourceDto());
+                BeanUtils.copyProperties(comment.getPost().getResource(), commentDto.getPost().getResource());
+            }
         }
 
         return commentDto;

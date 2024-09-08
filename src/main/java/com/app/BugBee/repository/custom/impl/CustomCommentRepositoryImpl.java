@@ -77,6 +77,7 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
         return client.sql(query)
                 .bind("lastId", pageable.getPageNumber())
                 .bind("size", pageable.getPageSize())
+                .bind("postId", postId)
                 .map(mapper::apply)
                 .all();
     }
