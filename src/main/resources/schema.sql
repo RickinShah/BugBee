@@ -108,11 +108,11 @@ CREATE TABLE IF NOT EXISTS bugbee.posts
 
 CREATE TABLE IF NOT EXISTS bugbee.resources
 (
-    post_pid     BIGINT,
-    file_format  VARCHAR(15)  NOT NULL,
-    nsfw_flag    BOOLEAN NOT NULL DEFAULT FALSE,
-    secret_key   VARCHAR(50),
-    iv           bytea,
+    post_pid    BIGINT,
+    file_format VARCHAR(15) NOT NULL,
+    nsfw_flag   BOOLEAN     NOT NULL DEFAULT FALSE,
+    secret_key  VARCHAR(50),
+    iv          bytea,
     PRIMARY KEY (post_pid),
     CONSTRAINT fk_resources_posts
         FOREIGN KEY (post_pid)

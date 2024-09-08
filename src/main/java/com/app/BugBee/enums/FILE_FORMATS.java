@@ -15,5 +15,8 @@ public enum FILE_FORMATS {
     PDF(".pdf");
 
     public final String value;
-    FILE_FORMATS(String value) { this.value = value;}
+
+    FILE_FORMATS(String value) {
+        this.value = value;
+    }
 }

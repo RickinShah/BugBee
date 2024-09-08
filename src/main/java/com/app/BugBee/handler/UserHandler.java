@@ -78,7 +78,7 @@ public class UserHandler {
         return userMono
                 .flatMap(user -> repository.findByUsername(user.getUsername())
                         .doOnNext(e -> e.setPassword(passwordEncoder.encode(user.getPassword()))))
-                .doOnNext(e->log.info(e.toString()))
+                .doOnNext(e -> log.info(e.toString()))
                 .flatMap(repository::saveUser)
                 .flatMap(e -> ServerResponse.ok()
                         .body(BodyInserters

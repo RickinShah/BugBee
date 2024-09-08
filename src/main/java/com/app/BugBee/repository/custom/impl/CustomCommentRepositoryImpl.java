@@ -19,7 +19,7 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
 
     @Override
     public Mono<Comment> saveComment(Comment comment) {
-        if(comment.getCommentId() != 0) {
+        if (comment.getCommentId() != 0) {
             final String query = "WITH updated AS (UPDATE bugbee.comments SET" +
                     " content = :content, updated_at = :updatedAt, update_flag = true" +
                     " WHERE comment_pid = :commentId AND post_id = :postId AND user_id = :userId RETURNING *)" +

@@ -35,22 +35,27 @@ cd BugBee
 ```
 
 ### 2. Rename the .env.example file
+
 - Docker requires .env file for environment variables
+
 ```shell
 cp .env.example .env
 ```
 
 ### 3. Install npm dependencies
+
 ```shell
 npm install --prefix src/main/frontend
 ```
 
 ### 4. Build the project
+
 ```shell
 sh build.sh
 ```
 
 ### 5. Run the project
+
 ```shell
 docker-compose up
 ```

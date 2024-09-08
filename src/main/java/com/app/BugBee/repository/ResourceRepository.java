@@ -1,6 +1,5 @@
 package com.app.BugBee.repository;
 
-import com.app.BugBee.entity.Otp;
 import com.app.BugBee.entity.Resource;
 import org.springframework.data.r2dbc.repository.Modifying;
 import org.springframework.data.r2dbc.repository.Query;

@@ -1,6 +1,9 @@
 package com.app.BugBee.handler;
 
-import com.app.BugBee.dto.*;
+import com.app.BugBee.dto.BooleanAndMessage;
+import com.app.BugBee.dto.CommentDto;
+import com.app.BugBee.dto.PostDto;
+import com.app.BugBee.dto.UserInfoDto;
 import com.app.BugBee.entity.CommentUserVote;
 import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.CommentRepository;
@@ -38,13 +41,13 @@ public class CommentHandler {
         final MultiValueMap<String, String> offsetAndSize = request.queryParams();
 
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
-                repository
-                        .findAllByPostId(postId, PageRequest.of(
-                                Integer.parseInt(offsetAndSize.getFirst("offset")),
-                                Integer.parseInt(offsetAndSize.getFirst("size"))
-                        ))
-                        .map(DtoEntityMapper::commentToDto), CommentDto.class
-        ))
+                        repository
+                                .findAllByPostId(postId, PageRequest.of(
+                                        Integer.parseInt(offsetAndSize.getFirst("offset")),
+                                        Integer.parseInt(offsetAndSize.getFirst("size"))
+                                ))
+                                .map(DtoEntityMapper::commentToDto), CommentDto.class
+                ))
                 .onErrorResume(Exception.class, e -> {
                     log.info(e.getMessage());
                     return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
@@ -67,13 +70,13 @@ public class CommentHandler {
         return commentUserVoteMono
                 .flatMap(commentUserVote ->
                         commentVoteRepository.existsByCommentIdAndUserId(
-                                commentUserVote.getCommentId(),
-                                commentUserVote.getUserId()
-                        )
-                        .flatMap(exists -> exists ?
-                                upvoteOrDowvoteIfAlreadyExists(commentUserVote) :
-                                upvoteOrDownvoteIfNotExists(commentUserVote)
-                        )
+                                        commentUserVote.getCommentId(),
+                                        commentUserVote.getUserId()
+                                )
+                                .flatMap(exists -> exists ?
+                                        upvoteOrDowvoteIfAlreadyExists(commentUserVote) :
+                                        upvoteOrDownvoteIfNotExists(commentUserVote)
+                                )
                 )
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(e.isSuccess(), e.getMessage())

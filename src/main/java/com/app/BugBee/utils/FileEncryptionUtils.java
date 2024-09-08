@@ -8,11 +8,11 @@ import java.security.NoSuchAlgorithmException;
 
 public class FileEncryptionUtils {
     public static SecretKey generateKey() throws NoSuchAlgorithmException {
-        try{
+        try {
             KeyGenerator keyGen = KeyGenerator.getInstance("AES");
             keyGen.init(256);
             return keyGen.generateKey();
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -23,7 +23,7 @@ public class FileEncryptionUtils {
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
             return cipher.doFinal(plainText);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -34,7 +34,7 @@ public class FileEncryptionUtils {
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec);
             return cipher.doFinal(cipherText);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

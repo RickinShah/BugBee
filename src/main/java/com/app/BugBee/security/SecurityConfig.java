@@ -3,10 +3,8 @@ package com.app.BugBee.security;
 import com.app.BugBee.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -16,12 +14,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsWebFilter;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.reactive.config.EnableWebFlux;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableReactiveMethodSecurity
@@ -55,10 +48,9 @@ public class SecurityConfig {
 //                .cors(Customizer.withDefaults())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth ->
-                        auth.pathMatchers("/api/auth/**").permitAll()
-//                                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .pathMatchers("/api/users/**", "/api/posts/**").authenticated()
-                                .pathMatchers("/api/admin/**").hasRole("ADMIN")
+                                auth.pathMatchers("/api/auth/**").permitAll()
+                                        .pathMatchers("/api/users/**", "/api/posts/**").authenticated()
+                                        .pathMatchers("/api/admin/**").hasRole("ADMIN")
                 )
                 .addFilterAt(new JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)
 //                .formLogin(Customizer.withDefaults()).build();

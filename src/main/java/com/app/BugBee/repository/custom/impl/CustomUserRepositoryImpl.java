@@ -3,7 +3,6 @@ package com.app.BugBee.repository.custom.impl;
 import com.app.BugBee.entity.User;
 import com.app.BugBee.mapper.UserMapper;
 import com.app.BugBee.repository.custom.CustomUserRepository;
-import io.r2dbc.spi.Parameter;
 import io.r2dbc.spi.Parameters;
 import io.r2dbc.spi.R2dbcType;
 import org.springframework.r2dbc.core.DatabaseClient;

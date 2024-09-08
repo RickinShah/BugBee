@@ -61,15 +61,15 @@ public class DtoEntityMapper {
         Comment comment = new Comment();
         BeanUtils.copyProperties(commentDto, comment);
 
-        if(commentDto.getUser() != null) {
+        if (commentDto.getUser() != null) {
             comment.setUser(new User());
             BeanUtils.copyProperties(commentDto.getUser(), comment.getUser());
         }
 
-        if(commentDto.getPost() != null){
+        if (commentDto.getPost() != null) {
             comment.setPost(new Post());
             BeanUtils.copyProperties(commentDto.getPost(), comment.getPost());
-            if(commentDto.getPost().getResource() != null){
+            if (commentDto.getPost().getResource() != null) {
                 comment.getPost().setResource(new Resource());
                 BeanUtils.copyProperties(commentDto.getPost().getResource(), comment.getPost().getResource());
             }
@@ -83,14 +83,14 @@ public class DtoEntityMapper {
         CommentDto commentDto = new CommentDto();
         BeanUtils.copyProperties(comment, commentDto);
 
-        if(comment.getUser() != null) {
+        if (comment.getUser() != null) {
             commentDto.setUser(new UserInfoDto());
             BeanUtils.copyProperties(comment.getUser(), commentDto.getUser());
         }
-        if(comment.getPost() != null) {
+        if (comment.getPost() != null) {
             commentDto.setPost(new PostDto());
             BeanUtils.copyProperties(comment.getPost(), commentDto.getPost());
-            if(comment.getPost().getResource() != null){
+            if (comment.getPost().getResource() != null) {
                 commentDto.getPost().setResource(new ResourceDto());
                 BeanUtils.copyProperties(comment.getPost().getResource(), commentDto.getPost().getResource());
             }

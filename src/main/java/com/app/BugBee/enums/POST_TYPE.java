@@ -10,11 +10,11 @@ public enum POST_TYPE {
 //    AUDIO(System.getenv("STORAGE") + "/posts/audios"),
 //    DOCUMENT(System.getenv("STORAGE") + "/posts/documents");
 
-    QUESTION(new String[] {null, null}),
-    IMAGE(new String[] {System.getenv("STORAGE") + "/posts/images", System.getenv("NGINX_STORAGE") + "/resource/images"}),
-    VIDEO(new String[] {System.getenv("STORAGE") + "/posts/videos", System.getenv("NGINX_STORAGE") + "/resource/videos"}),
-    AUDIO(new String[] {System.getenv("STORAGE") + "/posts/audios", System.getenv("NGINX_STORAGE") + "/resource/audios"}),
-    DOCUMENT(new String[] {System.getenv("STORAGE") + "/posts/documents", System.getenv("NGINX_STORAGE") + "/resource/documents"});
+    QUESTION(new String[]{null, null}),
+    IMAGE(new String[]{System.getenv("STORAGE") + "/posts/images", System.getenv("NGINX_STORAGE") + "/resource/images"}),
+    VIDEO(new String[]{System.getenv("STORAGE") + "/posts/videos", System.getenv("NGINX_STORAGE") + "/resource/videos"}),
+    AUDIO(new String[]{System.getenv("STORAGE") + "/posts/audios", System.getenv("NGINX_STORAGE") + "/resource/audios"}),
+    DOCUMENT(new String[]{System.getenv("STORAGE") + "/posts/documents", System.getenv("NGINX_STORAGE") + "/resource/documents"});
 
     private final String[] values;
 

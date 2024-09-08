@@ -76,10 +76,10 @@ public class PostHandler {
                                 .flatMap(repository::savePost)
                                 .flatMap(post -> {
                                     FilePart resource = (FilePart) partMap.get("resource");
-                                        return saveFileToPath(
-                                                POST_TYPE.valueOf(post.getPostType()).getValues()[0],
-                                                resource,
-                                                post);
+                                    return saveFileToPath(
+                                            POST_TYPE.valueOf(post.getPostType()).getValues()[0],
+                                            resource,
+                                            post);
                                 }))
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(true, "Posted Successfully!")
@@ -106,11 +106,11 @@ public class PostHandler {
                                 .map(resource -> {
                                     byte[] decodedKey = Base64.getDecoder().decode(resource.getSecretKey());
                                     SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-                                        return FileEncryptionUtils.decrypt(encryptedContent, key, resource.getIv());
+                                    return FileEncryptionUtils.decrypt(encryptedContent, key, resource.getIv());
                                 })
                                 .map(bytes -> Map.of(
-                                "file", bytes,
-                                "mediaType", new Tika().detect(bytes)));
+                                        "file", bytes,
+                                        "mediaType", new Tika().detect(bytes)));
 
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -283,36 +283,36 @@ public class PostHandler {
         Path filePath = Path.of(new File(path + "/" + post.getPostId() + fileFormat).getAbsolutePath());
 
         return DataBufferUtils.join(resource.content())
-                .flatMap(dataBuffer ->{
-                            byte[] fileBytes = new byte[dataBuffer.readableByteCount()];
-                            dataBuffer.read(fileBytes);
-                            DataBufferUtils.release(dataBuffer);
-                            try {
-                                SecretKey secretKey = FileEncryptionUtils.generateKey();
-                                byte[] iv = new byte[16];
-                                new SecureRandom().nextBytes(iv);
+                .flatMap(dataBuffer -> {
+                    byte[] fileBytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(fileBytes);
+                    DataBufferUtils.release(dataBuffer);
+                    try {
+                        SecretKey secretKey = FileEncryptionUtils.generateKey();
+                        byte[] iv = new byte[16];
+                        new SecureRandom().nextBytes(iv);
 
-                                byte[] encryptedContent = FileEncryptionUtils.encrypt(fileBytes, secretKey, iv);
+                        byte[] encryptedContent = FileEncryptionUtils.encrypt(fileBytes, secretKey, iv);
 
-                                return Mono.fromCallable(() -> {
+                        return Mono.fromCallable(() -> {
                                     FileCopyUtils.copy(encryptedContent, new File(filePath.toString()).getAbsoluteFile());
                                     return 1;
                                 })
-                                        .map(e -> Resource.builder()
-                                                .secretKey(Base64.getEncoder().encodeToString(secretKey.getEncoded()))
-                                                .postId(post.getPostId())
-                                                .fileFormat(fileFormat).nsfwFlag(false)
-                                                .iv(iv)
-                                                .build()
-                                        )
+                                .map(e -> Resource.builder()
+                                        .secretKey(Base64.getEncoder().encodeToString(secretKey.getEncoded()))
+                                        .postId(post.getPostId())
+                                        .fileFormat(fileFormat).nsfwFlag(false)
+                                        .iv(iv)
+                                        .build()
+                                )
 //                                        .doOnNext(resource1 -> log.info("{}", resource1.getSecretKey()))
-                                        .doOnNext(resource1 -> resource1.setFileFormat(FILE_FORMATS.valueOf(fileFormat.substring(1).toUpperCase()).name()))
-                                        .flatMap(resourceRepository::save);
-                            } catch (Exception e) {
-                                log.info(e.getMessage());
-                                return Mono.empty();
+                                .doOnNext(resource1 -> resource1.setFileFormat(FILE_FORMATS.valueOf(fileFormat.substring(1).toUpperCase()).name()))
+                                .flatMap(resourceRepository::save);
+                    } catch (Exception e) {
+                        log.info(e.getMessage());
+                        return Mono.empty();
 
-                            }
+                    }
 
                 });
     }
