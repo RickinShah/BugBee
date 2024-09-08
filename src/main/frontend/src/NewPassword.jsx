@@ -22,7 +22,7 @@ function NewPassword(){
     e.preventDefault();
 
     try {
-        const response = await fetch('https://localhost/api/auth/otp/' + username, {
+        const response = await fetch('/api/auth/otp/' + username, {
             method: "PATCH",
             headers: {
                 'Content-Type': 'application/json'

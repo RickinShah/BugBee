@@ -20,7 +20,7 @@ const ForgotPassword = () =>{
     e.preventDefault();
 
     try {
-        const response = await fetch('https://localhost/api/auth/otp', {
+        const response = await fetch('/api/auth/otp', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
