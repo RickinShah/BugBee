@@ -3,9 +3,10 @@ volumes:
 
 services:
   app:
-    image: "docker-bugbee:latest"
+    image: "bugbee-backend:latest"
     build:
       context: .
+      dockerfile: backend-Dockerfile
     container_name: bugbee
     depends_on:
       - db
@@ -15,39 +16,29 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - MAIL_EMAIL=${MAIL_EMAIL}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
-      - SSL_ALIAS=${SSL_ALIAS}
-      - SSL_LOCATION=${SSL_LOCATION}
-      - SSL_PASSWORD=${SSL_PASSWORD}
-      - SSL_CERTIFICATE_LOCATION=${SSL_CERTIFICATE_LOCATION}
       - SECRET_KEY=${SECRET_KEY}
       - STORAGE=${STORAGE}
-      - NGINX_STORAGE=${NGINX_STORAGE}
-    #    ports:
-    #      - "8443:8443"
     volumes:
-      - ${SSL_DIR}:/app/ssl
       - ${STORAGE}:/bugbee
 
   db:
     image: postgres:16
-    container_name: db-bugbee
+    container_name: postgres-bugbee
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+# Comment this ports for production
     ports:
       - "5432:5432"
     volumes:
       - pg-data:/var/lib/postgresql/data
 
   nginx:
-    image: nginx:1.27
-    container_name: nginx-bugbee
+    image: "bugbee-nginx:latest"
+    container_name: bugbee-nginx
+    build:
+      context: .
+      dockerfile: nginx-Dockerfile
     ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - ${NGINX_DIR}:/etc/nginx
-      - ${SSL_DIR}:/app/ssl
-      - ${STORAGE}:/bugbee
-      - ${FRONTEND_BUILD}:/usr/share/nginx/html

@@ -13,6 +13,11 @@ This Project is currently in progress.
 - PostgreSQL - Database
 - Spring Security - Authentication
 - Nginx - Reverse Proxy
+- Docker - Container
+- Vite - Frontend Build Tool
+- Maven - Backend Build Tool
+- React - Frontend Library
+- Tailwind - CSS
 
 ## Getting Started
 
@@ -20,8 +25,7 @@ This Project is currently in progress.
 
 Here's what you need to be able to run BugBee:
 
-- JDK 21
-- PostgreSQL
+- Docker
 
 ### 1. Clone the repository
 
@@ -30,34 +34,23 @@ git clone https://github.com/RickinShah/BugBee.git
 cd BugBee
 ```
 
-### 2. Configure Database (PostgreSQL)
-
-- Make changes in src/main/resources/application.yml
-
+### 2. Rename the .env.example file
+- Docker requires .env file for environment variables
 ```shell
-spring:
-  r2dbc:
-    url: r2dbc:postgresql://your_host:5432/your_database
-    username: your_username
-    password: your_password
+cp .env.example .env
 ```
 
-### 3. Compile the project
-
-#### For Windows:
-
+### 3. Install npm dependencies
 ```shell
-mvnw.cmd package
+npm install --prefix src/main/frontend
 ```
 
-#### For Linux/MacOS:
-
+### 4. Build the project
 ```shell
-./mvnw package
+sh build.sh
 ```
 
-### 4. Run the project
-
+### 5. Run the project
 ```shell
-java -jar target/BugBee-0.0.1-SNAPSHOT.jar
+docker-compose up
 ```

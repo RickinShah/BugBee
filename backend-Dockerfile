@@ -1,0 +1,7 @@
+FROM eclipse-temurin:21
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} bugbee.jar
+# For Development (Faster startup time)
+ENTRYPOINT ["java", "-XX:TieredStopAtLevel=1", "-jar", "bugbee.jar"]
+# For Production
+#ENTRYPOINT ["java", "-jar", "bugbee.jar"]
