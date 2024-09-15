@@ -10,4 +10,5 @@ public interface CommentVoteRepository extends R2dbcRepository<CommentUserVote, 
     Mono<Boolean> existsByCommentIdAndUserId(Long commentId, Long userId);
 
     Mono<CommentUserVote> findByCommentId(long commentId);
+    Mono<CommentUserVote> findByCommentIdAndUserId(long commentId, long userId);
 }

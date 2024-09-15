@@ -37,6 +37,7 @@ public class CommentHandler {
     }
 
     public Mono<ServerResponse> getCommentsByPostId(ServerRequest request) {
+        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final MultiValueMap<String, String> offsetAndSize = request.queryParams();
 
@@ -46,15 +47,27 @@ public class CommentHandler {
                                         Integer.parseInt(offsetAndSize.getFirst("offset")),
                                         Integer.parseInt(offsetAndSize.getFirst("size"))
                                 ))
-                                .map(DtoEntityMapper::commentToDto), CommentDto.class
-                ))
-                .onErrorResume(Exception.class, e -> {
-                    log.info(e.getMessage());
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                            BodyInserters.fromValue(
-                                    Map.of("error", "An unexpected error occurred. Please try again later!"))
-                    );
-                });
+                                .map(DtoEntityMapper::commentToDto)
+                                .flatMap(commentDto -> commentVoteRepository.findByCommentIdAndUserId(commentDto.getCommentId(), userId)
+                                                .doOnNext(commentUserVote -> {
+                                                    commentDto.setVoteStatus(commentUserVote.isVoteStatus());
+                                                    commentDto.setVotedFlag(true);
+                                                })
+                                                .map(commentUserVote -> commentDto)
+                                                .switchIfEmpty(Mono.fromCallable(() -> {
+                                                    commentDto.setVoteStatus(false);
+                                                    commentDto.setVotedFlag(false);
+                                                    return commentDto;
+                                                }))
+                                ), CommentDto.class
+                ));
+//                .onErrorResume(Exception.class, e -> {
+//                    log.info(e.getMessage());
+//                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+//                            BodyInserters.fromValue(
+//                                    Map.of("error", "An unexpected error occurred. Please try again later!"))
+//                    );
+//                });
 
     }
 
@@ -74,7 +87,7 @@ public class CommentHandler {
                                         commentUserVote.getUserId()
                                 )
                                 .flatMap(exists -> exists ?
-                                        upvoteOrDowvoteIfAlreadyExists(commentUserVote) :
+                                        upvoteOrDownvoteIfAlreadyExists(commentUserVote) :
                                         upvoteOrDownvoteIfNotExists(commentUserVote)
                                 )
                 )
@@ -180,7 +193,7 @@ public class CommentHandler {
                 .switchIfEmpty(Mono.error(new RuntimeException("Couldn't Upvote/Downvote")));
     }
 
-    private Mono<BooleanAndMessage> upvoteOrDowvoteIfAlreadyExists(CommentUserVote commentUserVote) {
+    private Mono<BooleanAndMessage> upvoteOrDownvoteIfAlreadyExists(CommentUserVote commentUserVote) {
         return Mono.fromCallable(() -> commentUserVote)
                 .flatMap(commentUserVote1 -> commentVoteRepository.findByCommentId(commentUserVote.getCommentId())
                         .doOnNext(commentUserVote2 -> commentUserVote1.setVoteId(commentUserVote2.getVoteId()))

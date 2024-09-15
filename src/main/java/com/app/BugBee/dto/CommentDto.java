@@ -21,4 +21,6 @@ public class CommentDto {
     private boolean updateFlag;
     private PostDto post;
     private UserInfoDto user;
+    private boolean voteStatus;
+    private boolean votedFlag;
 }
