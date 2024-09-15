@@ -1,10 +1,7 @@
 package com.app.BugBee.mapper;
 
 import com.app.BugBee.dto.*;
-import com.app.BugBee.entity.Comment;
-import com.app.BugBee.entity.Post;
-import com.app.BugBee.entity.Resource;
-import com.app.BugBee.entity.User;
+import com.app.BugBee.entity.*;
 import com.app.BugBee.enums.PROFILES;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -97,6 +94,40 @@ public class DtoEntityMapper {
         }
 
         return commentDto;
+    }
+
+    public static ReplyDto replyToDto(Reply reply) {
+        ReplyDto replyDto = new ReplyDto();
+        BeanUtils.copyProperties(reply, replyDto);
+
+        if (reply.getUser() != null) {
+            replyDto.setUser(new UserInfoDto());
+            BeanUtils.copyProperties(reply.getUser(), replyDto.getUser());
+        }
+
+        if (reply.getComment() != null) {
+            replyDto.setComment(new CommentDto());
+            BeanUtils.copyProperties(reply.getComment(), replyDto.getComment());
+        }
+
+        return replyDto;
+    }
+
+    public static Reply dtoToReply(ReplyDto replyDto) {
+        Reply reply = new Reply();
+        BeanUtils.copyProperties(replyDto, reply);
+
+        if (replyDto.getUser() != null) {
+            reply.setUser(new User());
+            BeanUtils.copyProperties(replyDto.getUser(), reply.getUser());
+        }
+
+        if (replyDto.getComment() != null) {
+            reply.setComment(new Comment());
+            BeanUtils.copyProperties(replyDto.getComment(), reply.getComment());
+        }
+
+        return reply;
     }
 
 }

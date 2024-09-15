@@ -19,7 +19,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 @Configuration
 @EnableReactiveMethodSecurity
 @EnableWebFluxSecurity
-@EnableWebFlux
+//@EnableWebFlux
 public class SecurityConfig {
 
     @Bean
