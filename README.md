@@ -26,6 +26,7 @@ This Project is currently in progress.
 Here's what you need to be able to run BugBee:
 
 - Docker
+- Docker Compose
 
 ### 1. Clone the repository
 
@@ -42,19 +43,13 @@ cd BugBee
 cp .env.example .env
 ```
 
-### 3. Install npm dependencies
+### 3. Build the project
 
 ```shell
-npm install --prefix src/main/frontend
+docker-compose build
 ```
 
-### 4. Build the project
-
-```shell
-sh build.sh
-```
-
-### 5. Run the project
+### 4. Run the project
 
 ```shell
 docker-compose up
