@@ -11,7 +11,6 @@ import com.app.BugBee.repository.CommentVoteRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -37,7 +36,7 @@ public class CommentHandler {
     }
 
     public Mono<ServerResponse> getCommentsByPostId(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final MultiValueMap<String, String> offsetAndSize = request.queryParams();
 
@@ -61,18 +60,11 @@ public class CommentHandler {
                                                 }))
                                 ), CommentDto.class
                 ));
-//                .onErrorResume(Exception.class, e -> {
-//                    log.info(e.getMessage());
-//                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-//                            BodyInserters.fromValue(
-//                                    Map.of("error", "An unexpected error occurred. Please try again later!"))
-//                    );
-//                });
 
     }
 
     public Mono<ServerResponse> voteComment(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long commentId = Long.parseLong(request.pathVariable("commentId"));
         final Mono<CommentUserVote> commentUserVoteMono = request.bodyToMono(CommentUserVote.class)
                 .doOnNext(commentUserVote -> {
@@ -104,7 +96,7 @@ public class CommentHandler {
     }
 
     public Mono<ServerResponse> insertCommentByPostId(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final Mono<CommentDto> commentDtoMono = request.bodyToMono(CommentDto.class)
                 .doOnNext(commentDto -> {
@@ -134,7 +126,7 @@ public class CommentHandler {
     }
 
     public Mono<ServerResponse> editComment(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final long commentId = Long.parseLong(request.pathVariable("commentId"));
         final Mono<CommentDto> commentDtoMono = request.bodyToMono(CommentDto.class)
@@ -163,7 +155,7 @@ public class CommentHandler {
     }
 
     public Mono<ServerResponse> deleteComment(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final long commentId = Long.parseLong(request.pathVariable("commentId"));
 

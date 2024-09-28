@@ -36,7 +36,7 @@ public class ReplyHandler {
     }
 
     public Mono<ServerResponse> getRepliesByCommentId(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long commentId = Long.parseLong(request.pathVariable("commentId"));
         final int page = Integer.parseInt(request.queryParam("page").orElse("0"));
         final int size = Integer.parseInt(request.queryParam("size").orElse("5"));
@@ -60,7 +60,7 @@ public class ReplyHandler {
     }
 
     public Mono<ServerResponse> insertReplyByCommentId(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long commentId = Long.parseLong(request.pathVariable("commentId"));
         final Mono<ReplyDto> replyDtoMono = request.bodyToMono(ReplyDto.class)
                 .doOnNext(replyDto -> {
@@ -88,7 +88,7 @@ public class ReplyHandler {
     }
 
     public Mono<ServerResponse> editReply(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long commentId = Long.parseLong(request.pathVariable("commentId"));
         final long replyId = Long.parseLong(request.pathVariable("replyId"));
         final Mono<ReplyDto> replyDtoMono = request.bodyToMono(ReplyDto.class)
@@ -119,7 +119,7 @@ public class ReplyHandler {
     }
 
     public Mono<ServerResponse> deleteReply(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long commentId = Long.parseLong(request.pathVariable("commentId"));
         final long replyId = Long.parseLong(request.pathVariable("replyId"));
         return repository
@@ -140,7 +140,7 @@ public class ReplyHandler {
     }
 
     public Mono<ServerResponse> voteReply(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long replyId = Long.parseLong(request.pathVariable("replyId"));
         final Mono<ReplyUserVote> replyUserVoteMono = request.bodyToMono(ReplyUserVote.class)
                 .doOnNext(replyUserVote -> {

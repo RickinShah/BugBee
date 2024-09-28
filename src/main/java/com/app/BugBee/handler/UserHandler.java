@@ -10,7 +10,11 @@ import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.rsocket.RSocketProperties;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -92,7 +96,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> deleteUser(ServerRequest request) {
-        String token = request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7);
+        String token = tokenProvider.getToken(request);
         return repository.deleteById(tokenProvider.getUsername(token))
                 .then(ServerResponse.ok().build());
     }
@@ -105,13 +109,12 @@ public class UserHandler {
                 .filter(Authentication::isAuthenticated)
                 .switchIfEmpty(Mono.error(new RuntimeException("Authentication failed")))
                 .map(tokenProvider::createToken)
-                .flatMap(jwt -> {
-                    Map<String, String> tokenBody = Map.of("id_token", jwt);
-                    return ServerResponse.ok()
-//                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
-                            .body(BodyInserters.fromValue(tokenBody)
-                            );
-                })
+                .flatMap(jwt -> ServerResponse.ok()
+                            .header(HttpHeaders.SET_COOKIE, "token=Bearer " + jwt + "; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600")
+                            .body(BodyInserters.fromValue(
+                                    new BooleanAndMessage(true, "Token Generated")
+                            ))
+                )
                 .onErrorResume(RuntimeException.class, e -> ServerResponse.badRequest().body(BodyInserters.fromValue(
                         new BooleanAndMessage(false, e.getMessage())
                 )));
@@ -125,7 +128,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> updateProfile(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final Mono<UserDto> userDtoMono = request.bodyToMono(UserDto.class)
                 .doOnNext(userDto -> userDto.setUserId(userId));
         return userDtoMono

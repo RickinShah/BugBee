@@ -18,7 +18,6 @@ import org.apache.tika.Tika;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
@@ -52,16 +51,21 @@ public class PostHandler {
 
     private final ResourceRepository resourceRepository;
 
-    public PostHandler(PostRepository repository, JwtTokenProvider tokenProvider, PostVoteRepository postVoteRepository, ResourceRepository resourceRepository) {
+    private final NsfwHandler nsfwHandler;
+
+    public PostHandler(PostRepository repository, JwtTokenProvider tokenProvider, PostVoteRepository postVoteRepository, ResourceRepository resourceRepository, NsfwHandler nsfwHandler) {
         this.repository = repository;
         this.tokenProvider = tokenProvider;
         this.postVoteRepository = postVoteRepository;
         this.resourceRepository = resourceRepository;
+        this.nsfwHandler = nsfwHandler;
     }
 
     public Mono<ServerResponse> insertPost(ServerRequest request) {
 //        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
-        final long userId = 3448660623615857777L;
+//        final long userId = 3448660623615857777L;
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
+//        log.info("{}", userId);
         return request.body(BodyExtractors.toMultipartData())
                 .map(MultiValueMap::toSingleValueMap)
                 .flatMap(partMap ->
@@ -138,7 +142,7 @@ public class PostHandler {
     }
 
     public Mono<ServerResponse> deletePost(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long postId = Long.parseLong(request.pathVariable("postId"));
 
         return repository.deleteByPostIdAndUserId(postId, userId)
@@ -146,7 +150,7 @@ public class PostHandler {
     }
 
     public Mono<ServerResponse> votePost(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final Mono<PostUserVote> postUserVoteMono = request.bodyToMono(PostUserVote.class)
                 .doOnNext(postUserVote -> {
@@ -174,7 +178,7 @@ public class PostHandler {
     }
 
     public Mono<ServerResponse> getNextPosts(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         MultiValueMap<String, String> offsetAndSize = request.queryParams();
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
                 repository.findAll(PageRequest.of(
@@ -199,7 +203,7 @@ public class PostHandler {
     }
 
     public Mono<ServerResponse> getSinglePost(ServerRequest request) {
-        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
         final long postId = Long.parseLong(request.pathVariable("postId"));
 
         return repository.findByPostId(postId)
@@ -264,7 +268,7 @@ public class PostHandler {
 
     private POST_TYPE getPostType(String postName) {
         postName = postName.toLowerCase();
-        if (postName.matches(".*\\.(png|jpg)$"))
+        if (postName.matches(".*\\.(png|jpg|jpeg)$"))
             return POST_TYPE.IMAGE;
         else if (postName.matches(".*\\.(mp4|webm)$"))
             return POST_TYPE.VIDEO;
@@ -305,9 +309,24 @@ public class PostHandler {
                                         .iv(iv)
                                         .build()
                                 )
-//                                        .doOnNext(resource1 -> log.info("{}", resource1.getSecretKey()))
                                 .doOnNext(resource1 -> resource1.setFileFormat(FILE_FORMATS.valueOf(fileFormat.substring(1).toUpperCase()).name()))
-                                .flatMap(resourceRepository::save);
+                                .flatMap(resource1 -> resourceRepository.save(resource1)
+//                                        .doOnNext(e -> log.info("File Format: {}", resource1.getFileFormat()))
+                                        .flatMap(e -> {
+                                            if(resource1.getFileFormat().equals(FILE_FORMATS.JPG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.PNG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.JPEG.name())) {
+                                                return nsfwHandler.checkIfNsfw("http://spring/api/auth/posts/" + post.getPostId())
+//                                                        .doOnNext(isNsfw -> log.info("{}", isNsfw))
+                                                        .map(isNsfw -> {
+                                                            resource1.setNsfwFlag(isNsfw);
+                                                            return resource1;
+                                                        });
+                                            }
+                                            return Mono.just(resource1);
+                                        })
+                                )
+                                .filter(Resource::isNsfwFlag)
+                                .flatMap(resourceRepository::save)
+                                .defaultIfEmpty(1L);
                     } catch (Exception e) {
                         log.info(e.getMessage());
                         return Mono.empty();
