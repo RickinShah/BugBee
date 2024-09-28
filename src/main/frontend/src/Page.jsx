@@ -29,10 +29,10 @@ const Page = () => {
                 body: JSON.stringify(formData)
             });
             const result = await response.json(); // Parsing JSON response
-            if (response.ok != true) {
-                console.log('Success:', result.message);
+            if (response.ok !== true) {
+                console.log(result.success , ': ', result.message);
             } else {
-                console.log(result.id_token);
+
             }
         } catch (error) {
             console.error('Error:', error);
@@ -49,7 +49,7 @@ const Page = () => {
                         <h1 className="text-8xl p-5 m-5">Welcome to <span
                             className="text-yellow-400 font-extrabold">Bugbee!</span></h1>
                     </div>
-                    <div cla>
+                    <div>
 
                         <div className="p-10 w-2/3 ">
                             <p>

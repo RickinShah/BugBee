@@ -31,7 +31,7 @@ const OTP = () => {
                 body: JSON.stringify(formData)
             });
             const result = await response.json(); // Parsing JSON response
-            if (response.ok != true) {
+            if (response.ok !== true) {
                 console.log('Success:', result.message);
             } else {
                 navigate(`/auth/password/${username}`);

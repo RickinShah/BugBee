@@ -33,7 +33,7 @@ const SignUp = () => {
             });
 
             const result = await response.json(); // Parsing JSON response
-            if (response.ok != true) {
+            if (response.ok !== true) {
                 console.log('Error: ', result.message);
             } else {
                 navigate(`/`);
