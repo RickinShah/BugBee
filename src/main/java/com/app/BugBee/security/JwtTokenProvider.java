@@ -6,15 +6,18 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -78,6 +81,18 @@ public class JwtTokenProvider {
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
 
+    }
+
+    public String getToken(ServerRequest request) {
+        String cookieHeader = request.headers().header(HttpHeaders.COOKIE).getFirst();
+
+        return Arrays.stream(cookieHeader.split(";"))
+                .map(cookie -> cookie.trim().split("="))
+                .filter(cookieParts -> cookieParts[0].equals("token"))
+                .map(cookieParts -> cookieParts[1])
+                .map(token -> token.substring(7))
+                .findFirst()
+                .orElse(null);
     }
 
 

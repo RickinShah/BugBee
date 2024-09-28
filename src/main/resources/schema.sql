@@ -3,23 +3,23 @@ CREATE SCHEMA IF NOT EXISTS bugbee;
 CREATE SEQUENCE IF NOT EXISTS bugbee.table_id_seq START WITH 1 INCREMENT BY 1;
 
 -- NEEDED TO ONLY RUN ONCE
-CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS
-'
-    DECLARE
-        our_epoch  bigint := 1314220021721;
-        seq_id     bigint;
-        now_millis bigint;
-        shard_id   int    := 5;
-    BEGIN
-        SELECT MOD(nextval(''bugbee.table_id_seq''), 1024)
-        INTO seq_id;
-        SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000)
-        INTO now_millis;
-        result := (now_millis - our_epoch) << 23;
-        result := result | (shard_id << 10);
-        result := result | (seq_id);
-    END;
-' LANGUAGE PLPGSQL;
+-- CREATE OR REPLACE FUNCTION bugbee.next_id(OUT result bigint) AS
+-- '
+--     DECLARE
+--         our_epoch  bigint := 1314220021721;
+--         seq_id     bigint;
+--         now_millis bigint;
+--         shard_id   int    := 5;
+--     BEGIN
+--         SELECT MOD(nextval(''bugbee.table_id_seq''), 1024)
+--         INTO seq_id;
+--         SELECT FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000)
+--         INTO now_millis;
+--         result := (now_millis - our_epoch) << 23;
+--         result := result | (shard_id << 10);
+--         result := result | (seq_id);
+--     END;
+-- ' LANGUAGE PLPGSQL;
 
 
 -- ORIGINAL CODE (if you want to add function directly to postgresql db)
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS bugbee.users
 -- Username: admin
 -- Password: admin
 -- INSERT INTO bugbee.users(email, username, name, password, roles, profile) VALUES (
---     'rickinshah.21.cs@iite.indusuni.ac.in',
+--     'admin@bugbee.com',
 --     'admin',
 --     'Admin',
 --     '$2a$10$QKy1jx.1gw9Ud5qRyc8PJeXIsJzhm0HkudjiC6JKSsR0UCvCQW7jS',
@@ -119,10 +119,6 @@ CREATE TABLE IF NOT EXISTS bugbee.resources
             REFERENCES bugbee.posts (post_pid)
             ON DELETE CASCADE
 );
-
--- ALTER TABLE bugbee.resources ADD COLUMN IF NOT EXISTS secret_key VARCHAR(100);
--- ALTER TABLE bugbee.resources DROP COLUMN iv ;
--- ALTER TABLE bugbee.resources ADD COLUMN IF NOT EXISTS iv bytea;
 
 CREATE TABLE IF NOT EXISTS bugbee.comments
 (

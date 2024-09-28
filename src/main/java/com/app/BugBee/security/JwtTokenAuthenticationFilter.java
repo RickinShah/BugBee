@@ -1,6 +1,7 @@
 package com.app.BugBee.security;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.Authentication;
@@ -11,6 +12,9 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+
+@Slf4j
 @RequiredArgsConstructor
 public class JwtTokenAuthenticationFilter implements WebFilter {
     public static final String HEADER_PREFIX = "Bearer ";
@@ -28,7 +32,21 @@ public class JwtTokenAuthenticationFilter implements WebFilter {
     }
 
     private String resolveToken(ServerHttpRequest request) {
-        String bearerToken = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String cookieHeader = request.getHeaders().getFirst(HttpHeaders.COOKIE);
+//        log.info(cookieHeader);
+
+        if(cookieHeader == null) {
+            return null;
+        }
+
+        String bearerToken = Arrays.stream(cookieHeader.split(";"))
+                .map(cookie -> cookie.trim().split("="))
+                .filter(cookieParts -> cookieParts[0].equals("token"))
+                .map(cookieParts -> cookieParts[1])
+                .findFirst()
+                .orElse(null);
+
+
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(HEADER_PREFIX)) {
             return bearerToken.substring(7);
         }

@@ -14,12 +14,10 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.web.reactive.config.EnableWebFlux;
 
 @Configuration
 @EnableReactiveMethodSecurity
 @EnableWebFluxSecurity
-//@EnableWebFlux
 public class SecurityConfig {
 
     @Bean
@@ -36,6 +34,19 @@ public class SecurityConfig {
                 );
 
     }
+
+//    @Bean
+//    public CorsWebFilter corsWebFilter() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(Arrays.asList("http://localhost:80"));
+//        configuration.setAllowCredentials(true);
+//        configuration.addAllowedHeader("*");
+//        configuration.addAllowedMethod("*");
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return new CorsWebFilter(source);
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -57,19 +68,6 @@ public class SecurityConfig {
                 .formLogin(formLoginSpec -> formLoginSpec.loginPage("/"))
                 .build();
     }
-
-//    @Bean
-//    public CorsWebFilter corsWebFilter() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(Arrays.asList(System.getenv("CROSS_ORIGIN_URL")));
-//        configuration.setAllowCredentials(true);
-//        configuration.addAllowedHeader("*");
-//        configuration.addAllowedMethod("*");
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return new CorsWebFilter(source);
-//    }
 
     @Bean
     public ReactiveAuthenticationManager reactiveAuthenticationManager(ReactiveUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
