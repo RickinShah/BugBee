@@ -2,14 +2,14 @@ volumes:
   pg-data:
 
 services:
-  app:
-    image: "bugbee-backend:latest"
+  spring:
+    image: "bugbee-spring:latest"
     build:
       context: .
-      dockerfile: backend-Dockerfile
-    container_name: bugbee
+      dockerfile: Dockerfiles/spring-Dockerfile
     depends_on:
       - db
+      - fastapi
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -20,10 +20,11 @@ services:
       - STORAGE=${STORAGE}
     volumes:
       - ${STORAGE}:/bugbee
+    networks:
+      - backend
 
   db:
     image: postgres:16
-    container_name: postgres-bugbee
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -33,12 +34,34 @@ services:
       - "5432:5432"
     volumes:
       - pg-data:/var/lib/postgresql/data
+    networks:
+      - backend
 
   nginx:
     image: "bugbee-nginx:latest"
-    container_name: bugbee-nginx
     build:
       context: .
-      dockerfile: nginx-Dockerfile
+      dockerfile: Dockerfiles/frontend-Dockerfile
     ports:
       - "80:80"
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - fastapi
+      - spring
+      - db
+
+  fastapi:
+    image: "bugbee-fastapi:latest"
+    build:
+      context: .
+      dockerfile: Dockerfiles/fastapi-Dockerfile
+    volumes:
+      - ${STORAGE}:/bugbee
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
