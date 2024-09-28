@@ -1,0 +1,7 @@
+transformers
+pillow
+tf-keras
+tensorflow-cpu
+fastapi
+requests
+uvicorn
