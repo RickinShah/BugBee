@@ -38,3 +38,7 @@ build/
 ### React ###
 src/main/frontend/dist
 src/main/frontend/node_modules
+
+### FastAPI ###
+src/main/fastapi/nsfw-detector-model
+src/main/fastapi/__pycache__

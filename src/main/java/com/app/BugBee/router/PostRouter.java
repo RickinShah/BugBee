@@ -25,10 +25,11 @@ public class PostRouter {
                 .DELETE("/api/posts/{postId}", handler::deletePost)
                 .PATCH("/api/posts/{postId}", handler::updatePost)
                 .POST("/api/posts/{postId}", handler::votePost)
+                .GET("/api/posts/download/{postId}.{fileFormat}", handler::downloadFile)
                 .route(RequestPredicates.POST("/api/auth/posts")
                         .and(RequestPredicates.contentType(MediaType.MULTIPART_FORM_DATA)), handler::insertPost
                 )
-                .GET("/api/auth/posts/{postId}", handler::decryptAndGetFile)
+                .GET("/api/posts/get/{postId}.{fileFormat}", handler::getFile)
                 .build();
     }
 }

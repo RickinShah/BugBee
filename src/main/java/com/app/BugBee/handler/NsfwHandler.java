@@ -17,14 +17,14 @@ public class NsfwHandler {
         this.webClient = webClientBuilder.baseUrl("http://fastapi").build();
     }
 
-    public Mono<Boolean> checkIfNsfw(String imageUrl) {
-        log.info("{}", imageUrl);
+    public Mono<Boolean> checkIfNsfw(String imageUrl, String token) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/posts/check-nsfw")
                         .queryParam("image_url", imageUrl)
                         .build()
                 )
+                .header("Cookie", "token=Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
                 .map(map -> (Integer) map.get("nsfw") == 1);

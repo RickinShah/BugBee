@@ -2,6 +2,7 @@ package com.app.BugBee.mapper;
 
 import com.app.BugBee.dto.*;
 import com.app.BugBee.entity.*;
+import com.app.BugBee.enums.FILE_FORMATS;
 import com.app.BugBee.enums.PROFILES;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -34,6 +35,7 @@ public class DtoEntityMapper {
         if (post.getResource() != null) {
             postDto.setResource(new ResourceDto());
             BeanUtils.copyProperties(post.getResource(), postDto.getResource());
+            postDto.getResource().setFileFormat(FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).getValue());
         }
         return postDto;
     }

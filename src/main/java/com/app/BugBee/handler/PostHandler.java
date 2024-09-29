@@ -18,6 +18,8 @@ import org.apache.tika.Tika;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
@@ -34,6 +36,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -62,10 +65,8 @@ public class PostHandler {
     }
 
     public Mono<ServerResponse> insertPost(ServerRequest request) {
-//        final long userId = tokenProvider.getUsername(request.headers().header(HttpHeaders.AUTHORIZATION).getFirst().substring(7));
-//        final long userId = 3448660623615857777L;
-        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
-//        log.info("{}", userId);
+        final String token = tokenProvider.getToken(request);
+        final long userId = tokenProvider.getUsername(token);
         return request.body(BodyExtractors.toMultipartData())
                 .map(MultiValueMap::toSingleValueMap)
                 .flatMap(partMap ->
@@ -83,7 +84,9 @@ public class PostHandler {
                                     return saveFileToPath(
                                             POST_TYPE.valueOf(post.getPostType()).getValues()[0],
                                             resource,
-                                            post);
+                                            post,
+                                            token
+                                    );
                                 }))
                 .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(true, "Posted Successfully!")
@@ -91,36 +94,46 @@ public class PostHandler {
     }
 
     // TODO: Implement method to download file
-//    public Mono<ServerResponse> downloadFile(ServerRequest request) {
-//        try {
-//            SecretKey key = ret
-//        }
-//    }
+    public Mono<ServerResponse> downloadFile(ServerRequest request) {
+        final String fileFormat = request.pathVariable("fileFormat");
+        final long postId = Long.parseLong(request.pathVariable("postId"));
 
-    public Mono<ServerResponse> decryptAndGetFile(ServerRequest request) {
-        long postId = Long.parseLong(request.pathVariable("postId"));
+        return Mono.fromCallable(() -> getPostType(postId + "." + fileFormat).getValues()[0] + "/" + postId + "." + fileFormat)
+//                .doOnNext(path -> log.info("File Path: {}", path))
+                .flatMap(path -> decryptFile(path, postId))
+//                .doOnNext(path -> log.info("File Decrypted"))
+                .flatMap(e -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + postId + "." + fileFormat + "\"")
+                        .body(BodyInserters.fromValue(e.get("file")))
+                )
+                .onErrorResume(RuntimeException.class, e -> {
+                    log.info(e.getMessage());
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            BodyInserters.fromValue(
+                                    Map.of("error", "An unexpected error occurred. Please try again later!"))
+                    );
+                });
+    }
 
-        return repository.findByPostId(postId)
-                .map(post -> POST_TYPE.valueOf(post.getPostType()).getValues()[0] + "/" + post.getPostId() + FILE_FORMATS.valueOf(post.getResource().getFileFormat()).value)
-                .flatMap(path -> {
-                    File file = new File(path);
-                    try {
-                        byte[] encryptedContent = FileCopyUtils.copyToByteArray(file.getAbsoluteFile());
-                        return resourceRepository.findById(postId)
-                                .map(resource -> {
-                                    byte[] decodedKey = Base64.getDecoder().decode(resource.getSecretKey());
-                                    SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-                                    return FileEncryptionUtils.decrypt(encryptedContent, key, resource.getIv());
-                                })
-                                .map(bytes -> Map.of(
-                                        "file", bytes,
-                                        "mediaType", new Tika().detect(bytes)));
+    public Mono<ServerResponse> getFile(ServerRequest request) {
+        final long postId = Long.parseLong(request.pathVariable("postId"));
+        final String fileFormat = request.pathVariable("fileFormat");
 
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .flatMap(e -> ServerResponse.ok().contentType(MediaType.parseMediaType(e.get("mediaType").toString())).body(BodyInserters.fromValue(e.get("file"))));
+        return Mono.fromCallable(() -> getPostType(postId + "." + fileFormat).getValues()[0] + "/" + postId + "." + fileFormat)
+//                .doOnNext(path -> log.info("File Path: {}", path))
+                .flatMap(path -> decryptFile(path, postId))
+                .flatMap(e -> ServerResponse.ok()
+                        .contentType(MediaType.parseMediaType(e.get("mediaType").toString()))
+                        .body(BodyInserters.fromValue(e.get("file")))
+                )
+                .onErrorResume(RuntimeException.class, e -> {
+                    log.info(e.getMessage());
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                            BodyInserters.fromValue(
+                                    Map.of("error", "An unexpected error occurred. Please try again later!"))
+                    );
+                });
     }
 
     public Mono<ServerResponse> updatePost(ServerRequest request) {
@@ -279,7 +292,7 @@ public class PostHandler {
         return POST_TYPE.QUESTION;
     }
 
-    private Mono<Long> saveFileToPath(String path, FilePart resource, Post post) {
+    private Mono<Long> saveFileToPath(String path, FilePart resource, Post post, String token) {
         String fileFormat = resource.filename().substring(resource.filename().lastIndexOf('.'));
         if (!new File(path).exists()) {
             new File(path).mkdirs();
@@ -314,7 +327,7 @@ public class PostHandler {
 //                                        .doOnNext(e -> log.info("File Format: {}", resource1.getFileFormat()))
                                         .flatMap(e -> {
                                             if(resource1.getFileFormat().equals(FILE_FORMATS.JPG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.PNG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.JPEG.name())) {
-                                                return nsfwHandler.checkIfNsfw("http://spring/api/auth/posts/" + post.getPostId())
+                                                return nsfwHandler.checkIfNsfw("http://spring/api/posts/get/" + post.getPostId() +  FILE_FORMATS.valueOf(resource1.getFileFormat()).value, token)
 //                                                        .doOnNext(isNsfw -> log.info("{}", isNsfw))
                                                         .map(isNsfw -> {
                                                             resource1.setNsfwFlag(isNsfw);
@@ -334,5 +347,25 @@ public class PostHandler {
                     }
 
                 });
+    }
+
+    private Mono<Map<String, Serializable>> decryptFile(String path, long postId) {
+        File file = new File(path);
+        try {
+            byte[] encryptedContent = FileCopyUtils.copyToByteArray(file.getAbsoluteFile());
+            return resourceRepository.findById(postId)
+                    .map(resource -> {
+                        byte[] decodedKey = Base64.getDecoder().decode(resource.getSecretKey());
+                        SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+                        return FileEncryptionUtils.decrypt(encryptedContent, key, resource.getIv());
+                    })
+                    .map(bytes -> Map.of(
+                            "file", bytes,
+                            "mediaType", new Tika().detect(bytes)));
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
