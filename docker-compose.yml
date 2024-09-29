@@ -59,6 +59,7 @@ services:
       dockerfile: Dockerfiles/fastapi-Dockerfile
     volumes:
       - ${STORAGE}:/bugbee
+      - ./src/main/fastapi/nsfw-detector-model:/app/nsfw-detector-model
     networks:
       - backend
 

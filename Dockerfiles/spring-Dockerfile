@@ -5,8 +5,8 @@ WORKDIR /app
 COPY pom.xml ./
 RUN mvn dependency:go-offline
 
-COPY src/main/java ./src/main/java
 COPY src/main/resources ./src/main/resources
+COPY src/main/java ./src/main/java
 RUN mvn clean package -q -D skipTests
 
 FROM eclipse-temurin:21
