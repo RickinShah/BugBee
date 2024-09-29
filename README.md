@@ -8,7 +8,7 @@ This Project is currently in progress.
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/RickinShah/BugBee/blob/main/LICENSE) file for details.
 
 ## Features
-- Restricted access to Indus University students only, verified through university email domain ([indusuni.ac.in](https://indusuni.ac.in/)))
+- Restricted access to Indus University students only, verified through university email domain ([indusuni.ac.in](https://indusuni.ac.in/))
 - Secure login system using JWT Token for authentication and authorization
 - Social media features for connecting with fellow students
 - AI-powered content moderation for a safe and respectful community
