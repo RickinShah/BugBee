@@ -10,11 +10,7 @@ import com.app.BugBee.mapper.DtoEntityMapper;
 import com.app.BugBee.repository.UserRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.rsocket.RSocketProperties;
-import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,8 +20,6 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -43,8 +37,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> userProfile(ServerRequest request) {
-//        log.info("Called!");
-        String username = request.pathVariable("username");
+        final String username = request.pathVariable("username");
         return repository.findByUsername(username)
                 .map(DtoEntityMapper::userToDto)
                 .flatMap(userDto -> ServerResponse.ok().body(BodyInserters.fromValue(
@@ -53,32 +46,32 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> signUp(ServerRequest request) {
-        Mono<User> userMono = request.bodyToMono(User.class)
+        final Mono<User> userMono = request.bodyToMono(User.class)
                 .doOnNext(user -> {
                     user.setProfile(PROFILES.P1.name());
                     user.setRoles(ROLES.ROLE_USER.name());
                     user.setPassword(passwordEncoder.encode(user.getPassword()));
                 });
+        final String regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9._%+-]+\\.indusuni\\.ac\\.in$";
         return userMono
-                .doOnNext(user -> log.info(user.toString()))
+                .filter(user -> user.getEmail().matches(regex))
                 .flatMap(user -> checkIfUsernameOrEmailAlreadyExists(user)
-//                                .doOnNext(booleanAndMessage -> log.info(booleanAndMessage.toString()))
-                                .flatMap(booleanAndMessage ->
-                                        booleanAndMessage.isSuccess() ?
-                                                ServerResponse.badRequest().body(
-                                                        BodyInserters.fromValue(booleanAndMessage)) :
-                                                repository.saveUser(user)
-                                                        .flatMap(userNew -> ServerResponse.ok()
-                                                                .body(BodyInserters.fromValue(
-                                                                        new BooleanAndMessage(true, "Sign up successful")
-                                                                )))
-                                )
-                );
+                        .filter(BooleanAndMessage::isSuccess)
+                        .flatMap(booleanAndMessage -> ServerResponse.badRequest().body(BodyInserters.fromValue(booleanAndMessage)))
+                        .switchIfEmpty(
+                                repository.saveUser(user)
+                                        .flatMap(e -> ServerResponse.ok().body(BodyInserters.fromValue(
+                                                new BooleanAndMessage(true, "Sign Up Successfully!")
+                                        )))
+                ))
+                .switchIfEmpty(ServerResponse.badRequest().body(BodyInserters.fromValue(
+                        new BooleanAndMessage(false, "Enter a valid Indus University Email!")
+                )));
     }
 
     public Mono<ServerResponse> updatePassword(ServerRequest request) {
-        String username = request.pathVariable("username");
-        Mono<User> userMono = request.bodyToMono(User.class).doOnNext(user -> user.setUsername(username));
+        final String username = request.pathVariable("username");
+        final Mono<User> userMono = request.bodyToMono(User.class).doOnNext(user -> user.setUsername(username));
         return userMono
                 .flatMap(user -> repository.findByUsername(user.getUsername())
                         .doOnNext(e -> e.setPassword(passwordEncoder.encode(user.getPassword()))))
@@ -96,13 +89,15 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> deleteUser(ServerRequest request) {
-        String token = tokenProvider.getToken(request);
+        final String token = tokenProvider.getToken(request);
         return repository.deleteById(tokenProvider.getUsername(token))
                 .then(ServerResponse.ok().build());
     }
 
     public Mono<ServerResponse> loginAndGetToken(ServerRequest request) {
-        return request.bodyToMono(AuthRequest.class)
+        final Mono<AuthRequest> authRequestMono = request.bodyToMono(AuthRequest.class);
+
+        return authRequestMono
                 .flatMap(login -> authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword())
                 ))
@@ -120,7 +115,7 @@ public class UserHandler {
                 )));
     }
 
-    public Mono<ServerResponse> getUsers(ServerRequest request) {
+    public Mono<ServerResponse> getUsers(ServerRequest ignoredRequest) {
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
                 repository.findAll()
                         .map(DtoEntityMapper::userToDto), UserDto.class)
