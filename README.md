@@ -53,7 +53,7 @@ cd BugBee
 ```
 
 ### 2. Rename the .env.example file
-- Docker requires .env file for environment variables
+Docker requires .env file for environment variables
 ```shell
 cp .env.example .env
 ```
@@ -69,7 +69,7 @@ docker-compose build
 docker-compose up
 ```
 > **Warning**: Ensure that you have sufficient disk space and system resources available. Docker images and containers can consume a significant amount of storage and memory.
-- Access the application at http://localhost:80/
+Access the application at http://localhost:80/
 
 ## Configuration
 ### Directory Structure for Posts
