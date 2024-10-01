@@ -69,6 +69,7 @@ docker-compose build
 docker-compose up
 ```
 > **Warning**: Ensure that you have sufficient disk space and system resources available. Docker images and containers can consume a significant amount of storage and memory.
+
 Access the application at http://localhost:80/
 
 ## Configuration
