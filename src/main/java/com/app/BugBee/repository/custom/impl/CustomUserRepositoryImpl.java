@@ -5,6 +5,8 @@ import com.app.BugBee.mapper.UserMapper;
 import com.app.BugBee.repository.custom.CustomUserRepository;
 import io.r2dbc.spi.Parameters;
 import io.r2dbc.spi.R2dbcType;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -93,6 +95,21 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
         final String query = "SELECT * FROM bugbee.users";
 
         return client.sql(query)
+                .map(userMapper::apply)
+                .all();
+    }
+
+    @Override
+    public Flux<User> searchUser(String keyword, Pageable pageable) {
+        final String query = "SELECT * FROM bugbee.users u WHERE" +
+                " LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR" +
+                " LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+                " LIMIT :size OFFSET :offset";
+
+        return client.sql(query)
+                .bind("keyword", keyword)
+                .bind("size", pageable.getPageSize())
+                .bind("offset", pageable.getOffset())
                 .map(userMapper::apply)
                 .all();
     }
