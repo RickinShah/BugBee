@@ -23,6 +23,13 @@ public class DtoEntityMapper {
         return user;
     }
 
+    public static UserInfoDto userInfoToDto(User user) {
+        UserInfoDto userInfoDto = new UserInfoDto();
+        BeanUtils.copyProperties(user, userInfoDto);
+        userInfoDto.setProfilePath(PROFILES.valueOf(user.getProfile()).getValues()[1]);
+        return userInfoDto;
+    }
+
     public static PostDto postToDto(Post post) {
         PostDto postDto = new PostDto();
         BeanUtils.copyProperties(post, postDto);
