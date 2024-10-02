@@ -202,7 +202,7 @@ public class PostHandler {
                         .map(DtoEntityMapper::postToDto)
                         .doOnNext(postDto -> postDto
                                 .setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] +
-                                        "/" + postDto.getPostId() +
+                                        File.separator + postDto.getPostId() +
                                         FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value)
                         )
                         .flatMap(postDto ->
@@ -306,7 +306,7 @@ public class PostHandler {
         if (!new File(path).exists()) {
             new File(path).mkdirs();
         }
-        Path filePath = Path.of(new File(path + "/" + post.getPostId() + fileFormat).getAbsolutePath());
+        Path filePath = Path.of(new File(path + File.separator + post.getPostId() + fileFormat).getAbsolutePath());
 
         return DataBufferUtils.join(resource.content())
                 .flatMap(dataBuffer -> {
