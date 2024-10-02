@@ -44,6 +44,8 @@ services:
       dockerfile: Dockerfiles/frontend-Dockerfile
     ports:
       - "80:80"
+    volumes:
+      - ${STORAGE}/profiles:/bugbee/profiles
     networks:
       - frontend
       - backend

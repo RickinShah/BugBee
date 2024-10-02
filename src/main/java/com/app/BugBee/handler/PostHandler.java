@@ -79,6 +79,7 @@ public class PostHandler {
                                 .doOnNext(post -> post.setPostType(
                                         (getPostType(((FilePart) partMap.get("resource")).filename())).name()))
                                 .flatMap(repository::savePost)
+                                .doOnNext(post -> log.info("Post saved: {}", post.getPostId()))
                                 .flatMap(post -> {
                                     FilePart resource = (FilePart) partMap.get("resource");
                                     return saveFileToPath(
@@ -93,18 +94,20 @@ public class PostHandler {
                 )));
     }
 
-    // TODO: Implement method to download file
     public Mono<ServerResponse> downloadFile(ServerRequest request) {
         final String fileFormat = request.pathVariable("fileFormat");
         final long postId = Long.parseLong(request.pathVariable("postId"));
 
-        return Mono.fromCallable(() -> getPostType(postId + "." + fileFormat).getValues()[0] + "/" + postId + "." + fileFormat)
-//                .doOnNext(path -> log.info("File Path: {}", path))
+        return Mono.fromCallable(() -> getPostType(postId + "." + fileFormat).getValues()[0] +
+                        "/" + postId + "." + fileFormat
+                )
                 .flatMap(path -> decryptFile(path, postId))
-//                .doOnNext(path -> log.info("File Decrypted"))
+                .doOnNext(path -> log.info("File Decrypted: {}.{}", postId, fileFormat))
                 .flatMap(e -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + postId + "." + fileFormat + "\"")
+                        .header(HttpHeaders.CONTENT_DISPOSITION,
+                                "attachment; filename=\"" + postId + "." + fileFormat + "\""
+                        )
                         .body(BodyInserters.fromValue(e.get("file")))
                 )
                 .onErrorResume(RuntimeException.class, e -> {
@@ -120,9 +123,11 @@ public class PostHandler {
         final long postId = Long.parseLong(request.pathVariable("postId"));
         final String fileFormat = request.pathVariable("fileFormat");
 
-        return Mono.fromCallable(() -> getPostType(postId + "." + fileFormat).getValues()[0] + "/" + postId + "." + fileFormat)
-//                .doOnNext(path -> log.info("File Path: {}", path))
+        return Mono.fromCallable(() -> getPostType(postId + "." + fileFormat).getValues()[0] +
+                        "/" + postId + "." + fileFormat
+                )
                 .flatMap(path -> decryptFile(path, postId))
+                .doOnNext(path -> log.info("File Decrypted: {}.{}", postId, fileFormat))
                 .flatMap(e -> ServerResponse.ok()
                         .contentType(MediaType.parseMediaType(e.get("mediaType").toString()))
                         .body(BodyInserters.fromValue(e.get("file")))
@@ -146,6 +151,7 @@ public class PostHandler {
         return postDtoMono
                 .map(DtoEntityMapper::dtoToPost)
                 .flatMap(repository::savePost)
+                .doOnNext(post -> log.info("Post updated: {}", post.getPostId()))
                 .flatMap(post -> ServerResponse.ok().body(BodyInserters.fromValue(
                         new BooleanAndMessage(false, "Nothing to delete!")
                 )))
@@ -170,16 +176,13 @@ public class PostHandler {
                     postUserVote.setPostId(postId);
                     postUserVote.setUserId(userId);
                 });
-//                .doOnNext(postUserVote -> log.info("{}",postUserVote.isVoteStatus()));
 
         return postUserVoteMono
                 .flatMap(postUserVote -> postVoteRepository.findByUserIdAndPostId(
                                         postUserVote.getUserId(), postUserVote.getPostId()
                                 )
                                 .defaultIfEmpty(new PostUserVote())
-//                        .doOnNext(vote -> log.info(vote.toString()))
                                 .filter(vote -> vote.getPostId() != 0)
-//                        .doOnNext(vote -> log.info(vote.toString()))
                                 .flatMap(vote -> upvoteOrDownvoteIfAlreadyExists(vote, postUserVote))
                                 .switchIfEmpty(upvoteOrDownvoteIfNotExists(postUserVote))
                 )
@@ -192,13 +195,16 @@ public class PostHandler {
 
     public Mono<ServerResponse> getNextPosts(ServerRequest request) {
         final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
-        MultiValueMap<String, String> offsetAndSize = request.queryParams();
+        final int offset = Integer.parseInt(request.queryParam("offset").orElse("0"));
+        final int size = Integer.parseInt(request.queryParam("size").orElse("0"));
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
-                repository.findAll(PageRequest.of(
-                                Integer.parseInt(offsetAndSize.getFirst("offset")),
-                                Integer.parseInt(offsetAndSize.getFirst("size"))))
+                repository.findAll(PageRequest.of(offset, size))
                         .map(DtoEntityMapper::postToDto)
-                        .doOnNext(postDto -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] + "/" + postDto.getPostId() + FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value))
+                        .doOnNext(postDto -> postDto
+                                .setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] +
+                                        "/" + postDto.getPostId() +
+                                        FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value)
+                        )
                         .flatMap(postDto ->
                                 postVoteRepository.findByUserIdAndPostId(
                                                 userId, postDto.getPostId()
@@ -207,7 +213,8 @@ public class PostHandler {
                                             postDto.setVoteStatus(postUserVote.isVoteStatus());
                                             postDto.setVotedFlag(true);
                                         })
-                                        .doOnNext(postUserVote -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]))
+                                        .doOnNext(postUserVote -> postDto
+                                                .setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]))
                                         .map(postUserVote -> postDto)
                                         .switchIfEmpty(Mono.just(postDto))
                         )
@@ -221,7 +228,11 @@ public class PostHandler {
 
         return repository.findByPostId(postId)
                 .map(DtoEntityMapper::postToDto)
-                .doOnNext(postDto -> postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] + "/" + postDto.getPostId() + FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value))
+                .doOnNext(postDto -> postDto
+                        .setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] +
+                                "/" + postDto.getPostId() +
+                                FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value)
+                )
                 .flatMap(postDto ->
                         postVoteRepository.findByUserIdAndPostId(
                                         userId, postDto.getPostId()
@@ -240,13 +251,11 @@ public class PostHandler {
     // Internal Methods Below
 
     private Mono<BooleanAndMessage> upvoteOrDownvoteIfNotExists(PostUserVote postUserVote) {
-//        log.info(postVote.toString());
         return postVoteRepository.save(postUserVote)
                 .flatMap(postUserVote1 -> postUserVote1.isVoteStatus() ?
                         repository.incrementUpvoteByPostId(postUserVote1.getPostId()) :
                         repository.incrementDownvoteByPostId(postUserVote1.getPostId())
                 )
-//                .doOnNext(e -> log.info(e.toString()))
                 .map(e -> new BooleanAndMessage(true, "Upvoted/Downvoted successfully!"))
                 .switchIfEmpty(Mono.just(new BooleanAndMessage(false, "Failed!")));
     }
@@ -322,13 +331,14 @@ public class PostHandler {
                                         .iv(iv)
                                         .build()
                                 )
-                                .doOnNext(resource1 -> resource1.setFileFormat(FILE_FORMATS.valueOf(fileFormat.substring(1).toUpperCase()).name()))
+                                .doOnNext(resource1 -> resource1.setFileFormat(
+                                        FILE_FORMATS.valueOf(fileFormat.substring(1).toUpperCase()).name()
+                                        )
+                                )
                                 .flatMap(resource1 -> resourceRepository.save(resource1)
-//                                        .doOnNext(e -> log.info("File Format: {}", resource1.getFileFormat()))
                                         .flatMap(e -> {
                                             if(resource1.getFileFormat().equals(FILE_FORMATS.JPG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.PNG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.JPEG.name())) {
                                                 return nsfwHandler.checkIfNsfw("http://spring/api/posts/get/" + post.getPostId() +  FILE_FORMATS.valueOf(resource1.getFileFormat()).value, token)
-//                                                        .doOnNext(isNsfw -> log.info("{}", isNsfw))
                                                         .map(isNsfw -> {
                                                             resource1.setNsfwFlag(isNsfw);
                                                             return resource1;
