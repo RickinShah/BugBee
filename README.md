@@ -62,13 +62,17 @@ cp .env.example .env
 ```shell
 docker-compose build
 ```
-> **Tip**: You can speed up development by using the `docker-compose up --build` command. This automatically rebuilds the application when changes are made.
+
+> [!TIP]
+> You can speed up development by using the `docker-compose up --build` command. This automatically rebuilds the application when changes are made.
 
 ### 4. Run the project
 ```shell
 docker-compose up
 ```
-> **Warning**: Ensure that you have sufficient disk space and system resources available. Docker images and containers can consume a significant amount of storage and memory.
+
+> [!WARNING]
+> Ensure that you have sufficient disk space and system resources available. Docker images and containers can consume a significant amount of storage and memory.
 
 Access the application at http://localhost:80/
 
