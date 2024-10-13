@@ -22,6 +22,7 @@ public class UserRouter {
                 .PATCH("/api/users/password", handler::updatePassword)
                 .DELETE("/api/users/delete", handler::deleteUser)
                 .PATCH("/api/users/settings", handler::updateProfile)
+                .POST("/api/users/{username}", handler::getUser)
                 .build();
     }
 }

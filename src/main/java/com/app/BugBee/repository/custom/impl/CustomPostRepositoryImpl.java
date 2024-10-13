@@ -20,15 +20,17 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
         this.client = databaseClient;
     }
 
-    public Flux<Post> findAll(Pageable pageable) {
+    public Flux<Post> findAll(int size, long lastId) {
         String query = "SELECT * FROM bugbee.posts p" +
                 " LEFT JOIN bugbee.users u ON p.user_id = u.user_pid" +
                 " LEFT JOIN bugbee.resources r ON p.post_pid = r.post_pid" +
-                " ORDER BY p.post_pid DESC OFFSET :lastId LIMIT :size";
+                " WHERE p.post_pid < :lastId" +
+                " ORDER BY p.post_pid DESC" +
+                " LIMIT :size";
 
         return client.sql(query)
-                .bind("size", pageable.getPageSize())
-                .bind("lastId", pageable.getPageNumber())
+                .bind("size", size)
+                .bind("lastId", lastId)
                 .map(postMapper::apply)
                 .all();
     }

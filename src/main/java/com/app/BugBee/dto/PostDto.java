@@ -26,6 +26,7 @@ public class PostDto {
     private boolean voteStatus;
     private boolean votedFlag;
     private ResourceDto resource;
+    private String sPostId;
 
     public PostDto(Map<String, Object> postMap, long userId) {
         this.postId = Long.parseLong(postMap.getOrDefault("postId", "0").toString());

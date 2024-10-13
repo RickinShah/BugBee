@@ -131,9 +131,9 @@ public class UserHandler {
                 .flatMap(user -> repository.findByUserId(user.getUserId())
                         .doOnNext(userNew -> {
                             userNew.setProfile(user.getProfile());
-                            userNew.setEmail(user.getEmail());
-                            userNew.setPassword(passwordEncoder.encode(user.getPassword()));
-                            userNew.setUsername(user.getUsername());
+//                            userNew.setEmail(user.getEmail());
+//                            userNew.setPassword(passwordEncoder.encode(user.getPassword()));
+//                            userNew.setUsername(user.getUsername());
                             userNew.setName(user.getName());
                             userNew.setShowNsfw(user.isShowNsfw());
                             userNew.setBio(user.getBio());
@@ -144,6 +144,13 @@ public class UserHandler {
                 .flatMap(userDto -> ServerResponse.ok().body(BodyInserters.fromValue(
                         userDto
                 )));
+    }
+
+    public Mono<ServerResponse> getUser(ServerRequest request) {
+        final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
+        return repository.findByUserId(userId)
+                .map(DtoEntityMapper::userToDto)
+                .flatMap(user -> ServerResponse.ok().body(BodyInserters.fromValue(user)));
     }
 
 

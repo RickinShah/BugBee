@@ -42,6 +42,9 @@ public class DtoEntityMapper {
         if (post.getResource() != null) {
             postDto.setResource(new ResourceDto());
             BeanUtils.copyProperties(post.getResource(), postDto.getResource());
+            log.info(post.getResource().getFileFormat());
+            log.info(postDto.getResource().getFileFormat());
+            log.info(FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).getValue());
             postDto.getResource().setFileFormat(FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).getValue());
         }
         return postDto;
@@ -92,6 +95,7 @@ public class DtoEntityMapper {
         if (comment.getUser() != null) {
             commentDto.setUser(new UserInfoDto());
             BeanUtils.copyProperties(comment.getUser(), commentDto.getUser());
+            commentDto.getUser().setProfilePath(PROFILES.valueOf(comment.getUser().getProfile()).getValues()[1]);
         }
         if (comment.getPost() != null) {
             commentDto.setPost(new PostDto());

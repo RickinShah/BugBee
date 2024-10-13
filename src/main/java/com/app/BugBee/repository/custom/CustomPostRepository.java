@@ -6,7 +6,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface CustomPostRepository {
-    Flux<Post> findAll(Pageable pageable);
+    Flux<Post> findAll(int size, long lastId);
 
     Mono<Post> savePost(Post post);
 

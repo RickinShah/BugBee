@@ -14,6 +14,7 @@ import com.app.BugBee.repository.ResourceRepository;
 import com.app.BugBee.security.JwtTokenProvider;
 import com.app.BugBee.utils.FileEncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -30,7 +31,9 @@ import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -99,7 +102,7 @@ public class PostHandler {
         final long postId = Long.parseLong(request.pathVariable("postId"));
 
         return Mono.fromCallable(() -> getPostType(postId + "." + fileFormat).getValues()[0] +
-                        "/" + postId + "." + fileFormat
+                        File.separator + postId + "." + fileFormat
                 )
                 .flatMap(path -> decryptFile(path, postId))
                 .doOnNext(path -> log.info("File Decrypted: {}.{}", postId, fileFormat))
@@ -195,16 +198,20 @@ public class PostHandler {
 
     public Mono<ServerResponse> getNextPosts(ServerRequest request) {
         final long userId = tokenProvider.getUsername(tokenProvider.getToken(request));
-        final int offset = Integer.parseInt(request.queryParam("offset").orElse("0"));
-        final int size = Integer.parseInt(request.queryParam("size").orElse("0"));
+        final long lastId = Long.parseLong(request.queryParam("lastId").orElse(String.valueOf(Long.MAX_VALUE)));
+        final int size = Integer.parseInt(request.queryParam("size").orElse("5"));
         return ServerResponse.ok().body(BodyInserters.fromPublisher(
-                repository.findAll(PageRequest.of(offset, size))
+                repository.findAll(size, lastId)
                         .map(DtoEntityMapper::postToDto)
-                        .doOnNext(postDto -> postDto
-                                .setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1] +
-                                        File.separator + postDto.getPostId() +
-                                        FILE_FORMATS.valueOf(postDto.getResource().getFileFormat()).value)
-                        )
+                        .map(postDto -> {
+                            postDto.setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]
+                                    + File.separator + postDto.getPostId()
+                                    + postDto.getResource().getFileFormat()
+                            );
+                            postDto.setSPostId(String.valueOf(postDto.getPostId()));
+                            log.info("{}", postDto.getSPostId());
+                            return postDto;
+                        })
                         .flatMap(postDto ->
                                 postVoteRepository.findByUserIdAndPostId(
                                                 userId, postDto.getPostId()
@@ -213,8 +220,8 @@ public class PostHandler {
                                             postDto.setVoteStatus(postUserVote.isVoteStatus());
                                             postDto.setVotedFlag(true);
                                         })
-                                        .doOnNext(postUserVote -> postDto
-                                                .setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]))
+                                        // .doOnNext(postUserVote -> postDto
+                                        //         .setPostType(POST_TYPE.valueOf(postDto.getPostType()).getValues()[1]))
                                         .map(postUserVote -> postDto)
                                         .switchIfEmpty(Mono.just(postDto))
                         )
@@ -302,6 +309,8 @@ public class PostHandler {
     }
 
     private Mono<Long> saveFileToPath(String path, FilePart resource, Post post, String token) {
+//        String fileFormat = FilenameUtils.getExtension(resource.filename());
+        log.info("File Extension: {}", FilenameUtils.getExtension(resource.filename()));
         String fileFormat = resource.filename().substring(resource.filename().lastIndexOf('.'));
         if (!new File(path).exists()) {
             new File(path).mkdirs();
@@ -324,6 +333,7 @@ public class PostHandler {
                                     FileCopyUtils.copy(encryptedContent, new File(filePath.toString()).getAbsoluteFile());
                                     return 1;
                                 })
+                                .subscribeOn(Schedulers.boundedElastic())
                                 .map(e -> Resource.builder()
                                         .secretKey(Base64.getEncoder().encodeToString(secretKey.getEncoded()))
                                         .postId(post.getPostId())
@@ -338,7 +348,8 @@ public class PostHandler {
                                 .flatMap(resource1 -> resourceRepository.save(resource1)
                                         .flatMap(e -> {
                                             if(resource1.getFileFormat().equals(FILE_FORMATS.JPG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.PNG.name()) || resource1.getFileFormat().equals(FILE_FORMATS.JPEG.name())) {
-                                                return nsfwHandler.checkIfNsfw("http://spring/api/posts/get/" + post.getPostId() +  FILE_FORMATS.valueOf(resource1.getFileFormat()).value, token)
+                                                final String nsfwUrl = UriComponentsBuilder.fromHttpUrl("http://spring/api/posts/get/").path(post.getPostId() + FILE_FORMATS.valueOf(resource1.getFileFormat()).value).toUriString();
+                                                return nsfwHandler.checkIfNsfw(nsfwUrl, token)
                                                         .map(isNsfw -> {
                                                             resource1.setNsfwFlag(isNsfw);
                                                             return resource1;

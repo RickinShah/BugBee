@@ -60,7 +60,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth ->
                                 auth.pathMatchers("/api/auth/**").permitAll()
-                                        .pathMatchers("/api/users/**", "/api/posts/**").authenticated()
+                                        .pathMatchers("/api/users/**", "/api/posts/**", "/api/search").authenticated()
                                         .pathMatchers("/api/admin/**").hasRole("ADMIN")
                 )
                 .addFilterAt(new JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)

@@ -102,8 +102,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     @Override
     public Flux<User> searchUser(String keyword, Pageable pageable) {
         final String query = "SELECT * FROM bugbee.users u WHERE" +
-                " LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR" +
-                " LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+                " LOWER(u.username) LIKE LOWER(CONCAT(:keyword, '%')) OR" +
+                " LOWER(u.name) LIKE LOWER(CONCAT(:keyword, '%'))" +
                 " LIMIT :size OFFSET :offset";
 
         return client.sql(query)
