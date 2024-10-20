@@ -1,8 +1,9 @@
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {useState} from 'react';
 
 
 const Page = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -29,10 +30,20 @@ const Page = () => {
                 body: JSON.stringify(formData)
             });
             const result = await response.json(); // Parsing JSON response
-            if (response.ok !== true) {
+            if (!response.ok) {
                 console.log(result.success , ': ', result.message);
             } else {
-
+                const fetchUser = await fetch(`/api/users/${formData.username}`, {
+                    method: "POST",
+                });
+                const userData = await fetchUser.json();
+                localStorage.setItem("username", userData.username);
+                localStorage.setItem("name", userData.name);
+                localStorage.setItem("nsfwFlag", userData.showNsfw);
+                localStorage.setItem("profilePic", userData.profilePath);
+                console.log(userData.bio);
+                localStorage.setItem("bio", userData.bio === null ? "": userData.bio);
+                navigate("/posts");
             }
         } catch (error) {
             console.error('Error:', error);

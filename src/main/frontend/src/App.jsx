@@ -30,21 +30,27 @@
 // export default App
 
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
-import Page from "./Page.jsx";
+import Login from "./Login.jsx";
 import SignUp from "./SignUp.jsx";
 import ForgotPassword from "./ForgotPassword.jsx";
 import OTP from "./OTP.jsx";
 import NewPassword from "./NewPassword.jsx";
+import UserPage from './UserPage.jsx';
+import Accounts from "./Accounts.jsx";
+import NewPost from "./NewPost.jsx";
 
 const App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<Page/>}/>
+                <Route path="/" element={<Login/>}/>
                 <Route path="/auth/signup" element={<SignUp/>}/>
                 <Route path="/auth/otp" element={<ForgotPassword/>}/>
                 <Route path="/auth/otp/:username" element={<OTP/>}/>
                 <Route path="/auth/password/:username" element={<NewPassword/>}/>
+                <Route path="/posts" element={<UserPage/>}/>
+                <Route path={"/accounts"} element={<Accounts/>}/>
+                <Route path={"/NewPost"} element={<NewPost/>}/>
             </Routes>
         </Router>
     );

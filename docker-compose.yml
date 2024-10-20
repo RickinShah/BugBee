@@ -18,6 +18,7 @@ services:
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - SECRET_KEY=${SECRET_KEY}
       - STORAGE=${STORAGE}
+      - POST_URL=${POST_URL}
     volumes:
       - ${STORAGE}:/bugbee
     networks:
